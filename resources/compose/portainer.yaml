@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  portainer:
+    image: portainer/portainer-ce
+    restart: unless-stopped
+    ports:
+      - "${PORTAINER_PORT}:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PORTAINER_DATA}:/data

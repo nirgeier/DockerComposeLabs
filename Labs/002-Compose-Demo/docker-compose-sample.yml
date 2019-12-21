@@ -1,0 +1,52 @@
+version: '3.9'
+
+services:
+  web:
+    image: nginx:latest
+    container_name: web-container
+    ports:
+      - "8080:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    volumes:
+      - ./web-data:/usr/share/nginx/html
+    networks:
+      - webnet
+    restart: always
+
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: app-container
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - db
+    networks:
+      - webnet
+      - dbnet
+    restart: on-failure
+
+  db:
+    image: postgres:latest
+    container_name: db-container
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - dbnet
+    restart: unless-stopped
+
+volumes:
+  db-data:
+
+networks:
+  webnet:
+  dbnet:

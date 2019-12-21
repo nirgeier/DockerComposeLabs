@@ -1,0 +1,7 @@
+replicaCount: 1
+
+server:
+  enabled: true
+  image: "node"
+  tag: "18-alpine"
+  port: 8080

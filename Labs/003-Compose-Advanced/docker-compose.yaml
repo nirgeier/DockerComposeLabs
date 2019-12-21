@@ -1,0 +1,50 @@
+
+x-common-config: &common-config
+  env_file: ../../resources/compose/.env
+  networks:
+    - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+services:
+  grafana:
+    <<: *common-config
+    extends:
+      file: ../../resources/compose/grafana.yaml
+      service: grafana
+
+  loki:
+    <<: *common-config
+    extends:
+      file: ../../resources/compose/loki.yaml
+      service: loki
+
+  node-exporter:
+    <<: *common-config
+    extends:
+      file: ../../resources/compose/node-exporter.yaml
+      service: node-exporter
+
+  portainer:
+    <<: *common-config
+    extends:
+      file: ../../resources/compose/portainer.yaml
+      service: portainer
+
+  prometheus:
+    <<: *common-config
+    extends:
+      file: ../../resources/compose/prometheus.yaml
+      service: prometheus
+
+  server:
+    <<: *common-config
+    extends:
+      file: ../../resources/compose/server.yaml
+      service: server
+
+volumes:
+  portainer_data:
+    driver: local

@@ -1,0 +1,7 @@
+replicaCount: 1
+
+prometheus:
+  enabled: true
+  image: "prom/prometheus"
+  tag: "v2.45.0"
+  port: 9090
