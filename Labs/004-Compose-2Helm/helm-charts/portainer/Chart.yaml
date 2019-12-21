@@ -1,0 +1,4 @@
+apiVersion: v2
+name: portainer
+version: 0.1.0
+description: Helm chart for Portainer

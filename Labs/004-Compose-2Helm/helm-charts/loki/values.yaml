@@ -1,0 +1,7 @@
+replicaCount: 1
+
+loki:
+  enabled: true
+  image: "grafana/loki"
+  tag: "2.8.0"
+  port: 3100

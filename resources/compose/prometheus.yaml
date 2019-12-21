@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  prometheus:
+    image: prom/prometheus:v2.45.3
+    restart: unless-stopped
+    volumes:
+      - ${PROMETHEUS_CONFIG_PATH}:/etc/prometheus/
+    command:
+      - --web.enable-remote-write-receiver
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    depends_on:
+      - server
+      - node-exporter

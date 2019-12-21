@@ -1,0 +1,65 @@
+
+# Docker Compose configuration demonstrating advanced features
+# This version showcases YAML anchors (&) and aliases (*) for DRY configuration
+# along with the 'extends' feature for modular service definitions
+
+# Network definitions
+networks:
+  app_network:
+    driver: bridge  # Use bridge driver for container communication
+
+services:
+  # Grafana - Data visualization and monitoring dashboard
+  grafana:
+    <<: *common-config  # Merge common configuration using YAML alias
+    extends:
+      file: ../../resources/compose/grafana.yaml  # Inherit base service definition
+      service: grafana
+
+  # Loki - Log aggregation system for centralized logging
+  loki:
+    <<: *common-config  # Merge common configuration using YAML alias
+    extends:
+      file: ../../resources/compose/loki.yaml  # Inherit base service definition
+      service: loki
+
+  # Node Exporter - Hardware and OS metrics exporter for Prometheus
+  node-exporter:
+    <<: *common-config  # Merge common configuration using YAML alias
+    extends:
+      file: ../../resources/compose/node-exporter.yaml  # Inherit base service definition
+      service: node-exporter
+
+  # Portainer - Docker container management web interface
+  portainer:
+    <<: *common-config  # Merge common configuration using YAML alias
+    extends:
+      file: ../../resources/compose/portainer.yaml  # Inherit base service definition
+      service: portainer
+
+  # Prometheus - Time-series metrics collection and monitoring
+  prometheus:
+    <<: *common-config  # Merge common configuration using YAML alias
+    extends:
+      file: ../../resources/compose/prometheus.yaml  # Inherit base service definition
+      service: prometheus
+
+  # Server - Custom application server
+  server:
+    <<: *common-config  # Merge common configuration using YAML alias
+    extends:
+      file: ../../resources/compose/server.yaml  # Inherit base service definition
+      service: server
+
+# Named volumes for persistent data storage
+volumes:
+  # Portainer data volume for storing Portainer configuration and data
+  portainer_data:
+    driver: local  # Use local driver for volume storage
+
+# YAML anchor definition for common configuration
+# This reduces repetition by defining shared settings once
+x-common-config: &common-config
+  env_file: ../../resources/compose/.env  # Shared environment file
+  networks:
+    - app_network  # All services join the same network

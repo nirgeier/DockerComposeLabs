@@ -1,0 +1,106 @@
+# Prometheus configuration for multi-network monitoring
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Scrape configurations for different networks
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+
+  # Frontend network services
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: '/nginx_status'
+    scrape_interval: 10s
+
+  - job_name: 'web-app'
+    static_configs:
+      - targets: ['web-app:3000']
+      - targets: ['webapp:3000']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Backend network services
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:3000']
+      - targets: ['gateway:3000']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Services network microservices
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:8001']
+      - targets: ['users:8001']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  - job_name: 'order-service'
+    static_configs:
+      - targets: ['order-service:8002']
+      - targets: ['orders:8002']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:8003']
+      - targets: ['notifications:8003']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Database network services
+  - job_name: 'postgres-primary'
+    static_configs:
+      - targets: ['postgres-primary:5432']
+      - targets: ['primary-db:5432']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'postgres-secondary'
+    static_configs:
+      - targets: ['postgres-secondary:5432']
+      - targets: ['secondary-db:5432']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'redis-cache'
+    static_configs:
+      - targets: ['redis-cache:6379']
+      - targets: ['cache:6379']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 20s
+
+  # Messaging network services
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']  # Prometheus metrics port
+      - targets: ['message-broker:15692']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 20s
+
+  # External network services
+  - job_name: 'mailhog'
+    static_configs:
+      - targets: ['mailhog:8025']
+      - targets: ['mail-server:8025']  # Network alias
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+# Rule files for alerting
+rule_files:
+  - "alert_rules.yml"
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # Add alertmanager if needed
+          # - alertmanager:9093

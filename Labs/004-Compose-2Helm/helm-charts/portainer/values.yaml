@@ -1,0 +1,7 @@
+replicaCount: 1
+
+portainer:
+  enabled: true
+  image: "portainer/portainer-ce"
+  tag: "2.18.4"
+  port: 9000

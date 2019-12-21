@@ -1,0 +1,87 @@
+# Simple Multi-Network Docker Compose Example
+# This demonstrates basic multi-network concepts with fewer services
+
+services:
+  # Frontend service
+  web:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    networks:
+      - frontend
+      - dmz
+    volumes:
+      - ./web/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - api
+
+  # API service
+  api:
+    build: ./api
+    networks:
+      - frontend
+      - backend
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/mydb
+    depends_on:
+      - db
+      - cache
+
+  # Database service
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=mydb
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+    networks:
+      - backend
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  # Cache service
+  cache:
+    image: redis:7-alpine
+    networks:
+      - backend
+    volumes:
+      - cache_data:/data
+
+  # Admin interface
+  admin:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+    networks:
+      - backend
+      - dmz
+    depends_on:
+      - db
+
+# Network definitions
+networks:
+  # Frontend network - web-facing services
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+  # Backend network - internal services
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+
+  # DMZ network - admin/management interfaces
+  dmz:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
+
+# Volume definitions
+volumes:
+  db_data:
+  cache_data:

@@ -1,0 +1,21 @@
+{{- if .Values.server.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: server
+  template:
+    metadata:
+      labels:
+        app: server
+    spec:
+      containers:
+      - name: server
+        image: {{ .Values.server.image }}:{{ .Values.server.tag }}
+        ports:
+        - containerPort: {{ .Values.server.port }}
+{{- end }}
