@@ -1,0 +1,3 @@
+shared_volume/
+.history
+**/node_modules/**

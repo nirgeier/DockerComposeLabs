@@ -1,0 +1,21 @@
+{{- if .Values.portainer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: portainer
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: portainer
+  template:
+    metadata:
+      labels:
+        app: portainer
+    spec:
+      containers:
+      - name: portainer
+        image: {{ .Values.portainer.image }}:{{ .Values.portainer.tag }}
+        ports:
+        - containerPort: {{ .Values.portainer.port }}
+{{- end }}

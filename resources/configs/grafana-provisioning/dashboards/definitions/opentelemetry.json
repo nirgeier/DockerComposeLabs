@@ -1,0 +1,97 @@
+{
+  "id": null,
+  "uid": null,
+  "title": "OpenTelemetry Overview",
+  "tags": [
+    "opentelemetry",
+    "observability"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "10s",
+  "panels": [
+    {
+      "type": "logs",
+      "title": "Logs (Loki)",
+      "datasource": {
+        "type": "loki",
+        "uid": null
+      },
+      "targets": [
+        {
+          "expr": "{job=\"your-job-name\"}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Rate (Prometheus)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": null
+      },
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_total[1m])",
+          "legendFormat": "{{method}} {{handler}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "type": "timeseries",
+      "title": "Request Duration (Prometheus)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": null
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket[5m])) by (le, handler))",
+          "legendFormat": "p95 {{handler}}",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      }
+    },
+    {
+      "type": "traces",
+      "title": "Traces (Tempo)",
+      "datasource": {
+        "type": "tempo",
+        "uid": null
+      },
+      "targets": [
+        {
+          "query": "service.name=\"your-service-name\"",
+          "refId": "A"
+        }
+      ],
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      }
+    }
+  ]
+}

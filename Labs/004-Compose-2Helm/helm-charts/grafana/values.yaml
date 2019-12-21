@@ -1,0 +1,7 @@
+replicaCount: 1
+
+grafana:
+  enabled: true
+  image: "grafana/grafana"
+  tag: "9.5.2"
+  port: 3000

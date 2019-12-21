@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  server:
+    build:
+      dockerfile: Dockerfile
+      context: ../../server
+    ports:
+      - "${SERVER_PORT}:8090"

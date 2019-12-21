@@ -1,0 +1,21 @@
+{{- if .Values.nodeExporter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-exporter
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: node-exporter
+  template:
+    metadata:
+      labels:
+        app: node-exporter
+    spec:
+      containers:
+      - name: node-exporter
+        image: {{ .Values.nodeExporter.image }}:{{ .Values.nodeExporter.tag }}
+        ports:
+        - containerPort: {{ .Values.nodeExporter.port }}
+{{- end }}

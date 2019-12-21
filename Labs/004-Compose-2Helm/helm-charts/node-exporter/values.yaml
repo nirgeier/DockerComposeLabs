@@ -1,0 +1,7 @@
+replicaCount: 1
+
+nodeExporter:
+  enabled: true
+  image: "prom/node-exporter"
+  tag: "v1.5.0"
+  port: 9100
