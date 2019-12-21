@@ -1,0 +1,23 @@
+version: "3"
+services:
+  server1:
+    build: server
+    deploy:
+      replicas: 2
+    ports:
+      - "5555-6000:3000"
+    volumes:
+      - "./shared_volume:/shared_volume"
+    restart: always
+    environment:
+      port: 3000
+      name: "Server1"
+  server2:
+    build: server
+    ports:
+      - "9000:5000"
+    volumes:
+      - "./shared_volume:/shared_volume"
+    environment:
+      port: 5000
+      name: "Server2"
