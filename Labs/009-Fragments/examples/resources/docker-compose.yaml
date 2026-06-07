@@ -1,0 +1,92 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Resource Constraint Fragments
+# ──────────────────────────────────────────────────────────────
+# Define reusable CPU/memory limits and reservations.
+# ──────────────────────────────────────────────────────────────
+
+# ── Reusable Resource Fragments ───────────────────────────────
+x-resources-tiny: &resources-tiny
+  deploy:
+    resources:
+      limits:
+        cpus: "0.1"
+        memory: "64M"
+      reservations:
+        cpus: "0.05"
+        memory: "32M"
+
+x-resources-small: &resources-small
+  deploy:
+    resources:
+      limits:
+        cpus: "0.25"
+        memory: "128M"
+      reservations:
+        cpus: "0.1"
+        memory: "64M"
+
+x-resources-medium: &resources-medium
+  deploy:
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+      reservations:
+        cpus: "0.25"
+        memory: "128M"
+
+x-resources-large: &resources-large
+  deploy:
+    resources:
+      limits:
+        cpus: "1"
+        memory: "512M"
+      reservations:
+        cpus: "0.5"
+        memory: "256M"
+
+x-resources-xlarge: &resources-xlarge
+  deploy:
+    resources:
+      limits:
+        cpus: "2"
+        memory: "1G"
+      reservations:
+        cpus: "1"
+        memory: "512M"
+
+x-resources-gpu: &resources-gpu
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+
+# ── Services ──────────────────────────────────────────────────
+services:
+
+  tiny-app:
+    image: nginx:alpine
+    ports:
+      - "8101:80"
+    <<: *resources-tiny
+
+  small-app:
+    image: nginx:alpine
+    ports:
+      - "8102:80"
+    <<: *resources-small
+
+  medium-app:
+    image: nginx:alpine
+    ports:
+      - "8103:80"
+    <<: *resources-medium
+
+  large-app:
+    image: nginx:alpine
+    ports:
+      - "8104:80"
+    <<: *resources-large

@@ -1,0 +1,74 @@
+# ── Reusable init container fragments ────────────────────────
+
+x-init-wait-for-db: &init-wait-for-db
+  init: true
+  image: alpine:latest
+  command: >
+    sh -c "until nc -z db 5432; do echo 'waiting for db'; sleep 2; done && echo 'db ready'"
+  depends_on:
+    db:
+      condition: service_healthy
+
+x-init-migrate: &init-migrate
+  init: true
+  image: alpine:latest
+  command: ["sh", "-c", "echo 'Running migrations...' && sleep 3 && echo 'Migrations done'"]
+
+x-init-seed: &init-seed
+  init: true
+  image: alpine:latest
+  command: ["sh", "-c", "echo 'Seeding data...' && sleep 2 && echo 'Seed done'"]
+
+x-init-cache-warm: &init-cache-warm
+  init: true
+  image: alpine:latest
+  command: ["sh", "-c", "echo 'Warming cache...' && sleep 2 && echo 'Cache warm'"]
+
+x-init-healthcheck: &init-healthcheck
+  init: true
+  image: alpine:latest
+  command: ["sh", "-c", "echo 'Healthcheck passed ✓' && exit 0"]
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  db-wait:
+    <<: *init-wait-for-db
+
+  db-migrate:
+    <<: *init-migrate
+    depends_on:
+      db-wait:
+        condition: service_completed_successfully
+
+  db-seed:
+    <<: *init-seed
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  # ── App depends on ALL init containers ──────────────────────
+  app:
+    image: nginx:alpine
+    ports:
+      - "8194:80"
+    depends_on:
+      db-seed:
+        condition: service_completed_successfully

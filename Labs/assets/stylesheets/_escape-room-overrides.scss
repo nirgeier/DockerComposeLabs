@@ -1,0 +1,71 @@
+// ── Bash Escape Room - MkDocs admonition overrides ──────────────────────────
+// Applied on top of the built codewizard.css in the mkdocs-site.
+// Also appended to docs/assets/stylesheets/codewizard.css by reinstall.sh.
+
+// ── "abstract" admonition → styled numbered task cards ──────────────────────
+.md-typeset .admonition.abstract {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.md-typeset .admonition.abstract > .admonition-title {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 0 0 6px 0 !important;
+  margin-bottom: 0.75em !important;
+  color: var(--md-default-fg-color--light) !important;
+}
+
+.md-typeset .admonition.abstract > .admonition-title::before {
+  display: none !important;
+}
+
+.md-typeset .admonition.abstract ol {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  counter-reset: mission-counter !important;
+}
+
+.md-typeset .admonition.abstract ol > li {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 8px !important;
+  padding: 12px 16px !important;
+  margin: 0 !important;
+  counter-increment: mission-counter !important;
+  transition: border-color 0.2s !important;
+}
+
+.md-typeset .admonition.abstract ol > li:hover {
+  border-color: #e94560 !important;
+}
+
+.md-typeset .admonition.abstract ol > li::before {
+  content: counter(mission-counter) !important;
+  min-width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  background: #e94560 !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  line-height: 1 !important;
+}

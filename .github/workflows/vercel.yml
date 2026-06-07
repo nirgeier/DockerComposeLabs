@@ -1,0 +1,49 @@
+name: Deploy to Vercel
+
+on:
+  push:
+    branches:
+      - master  # Adjust this to your main branch name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 1: Set up Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      # Step 1.5: Install uv
+      - name: Install uv
+        run: pip install uv
+
+      # Step 2: Install dependencies (MkDocs, Material, vevv dependencies, etc.)
+      # Assuming you have a requirements.txt file that lists all dependencies
+      - name: Install dependencies
+        run:  uv pip install -r mkdocs/requirements.txt
+
+      # Step 3: Build the MkDocs site
+      # The mkdocs build command will output the static files to the 'site' directory
+      - name: Build MkDocs
+        run: mkdocs build
+
+      # Step 4: Deploy to Vercel
+      # Using the amondnet/vercel-action is a common way to deploy to Vercel
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v20
+        with:
+          # Vercel Token is required for authentication
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          # The Vercel Organization ID
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          # The Vercel Project ID
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          # The directory containing the built static site (default is 'site' for MkDocs)
+          working-directory: ./mkdocs-site
+          # Determines if this is a production deployment or a preview
+          vercel-args: '--prod' # Use this for production deployment on your main branch

@@ -1,0 +1,91 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Profiles - CI/CD Pipeline Integration
+# ──────────────────────────────────────────────────────────────
+# Run different stages of your pipeline using profiles.
+# ──────────────────────────────────────────────────────────────
+
+x-profile-lint: &profile-lint
+  profiles: [lint]
+
+x-profile-unit: &profile-unit
+  profiles: [unit]
+
+x-profile-integration: &profile-integration
+  profiles: [integration]
+
+x-profile-e2e: &profile-e2e
+  profiles: [e2e]
+
+services:
+
+  # ── App services (always start) ─────────────────────────
+  web:
+    image: nginx:alpine
+    ports:
+      - "8181:80"
+
+  api:
+    image: node:20-alpine
+    command: >
+      sh -c "node -e \"require('http').createServer((q,r) => r.end('ok')).listen(3000)\""
+    ports:
+      - "3000:3000"
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ── Lint stage ──────────────────────────────────────────
+  hadolint:
+    image: hadolint/hadolint:latest
+    command: ["hadolint", "/Dockerfile"]
+    volumes:
+      - ./Dockerfile:/Dockerfile:ro
+    <<: *profile-lint
+
+  eslint:
+    image: node:20-alpine
+    working_dir: /app
+    command: ["sh", "-c", "npm install && npm run lint"]
+    volumes:
+      - ./app:/app
+    <<: *profile-lint
+
+  # ── Unit test stage ─────────────────────────────────────
+  unit-tests:
+    image: node:20-alpine
+    working_dir: /app
+    command: ["sh", "-c", "npm install && npm test"]
+    volumes:
+      - ./app:/app
+    <<: *profile-unit
+
+  # ── Integration test stage ──────────────────────────────
+  integration-tests:
+    image: node:20-alpine
+    working_dir: /app
+    command: ["sh", "-c", "npm install && npm run test:integration"]
+    volumes:
+      - ./app:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    <<: *profile-integration
+
+  # ── E2E test stage ──────────────────────────────────────
+  cypress:
+    image: cypress/included:latest
+    working_dir: /e2e
+    command: ["cypress", "run"]
+    volumes:
+      - ./e2e:/e2e
+    depends_on:
+      - web
+      - api
+    <<: *profile-e2e

@@ -1,0 +1,78 @@
+# ── Wait Strategies ──────────────────────────────────────────
+# Different patterns for waiting on service readiness.
+
+services:
+
+  # ── Strategy 1: Healthcheck ──────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
+
+  # ── Strategy 2: netcat TCP wait ──────────────────────────
+  app-wait-nc:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Waiting for TCP port 5432...' &&
+        until nc -z db 5432; do sleep 1; done &&
+        echo 'Port is open!'
+      "
+
+  # ── Strategy 3: curl HTTP health endpoint ────────────────
+  app-wait-curl:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        echo 'Waiting for HTTP 200...' &&
+        until curl -sf http://web:80; do sleep 1; done &&
+        echo 'Web is ready!'
+      "
+
+  # ── Strategy 4: pg_isready (PostgreSQL native) ───────────
+  app-wait-pg:
+    image: postgres:16-alpine
+    init: true
+    command: >
+      sh -c "
+        echo 'Waiting for PostgreSQL...' &&
+        until pg_isready -h db -U postgres; do sleep 1; done &&
+        echo 'PostgreSQL is ready!'
+      "
+
+  # ── Strategy 5: Custom script ────────────────────────────
+  app-wait-custom:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Custom wait: checking /tmp/ready file...' &&
+        until [ -f /tmp/ready ]; do sleep 1; done &&
+        echo 'Ready file found!'
+      "
+
+  # ── Strategy 6: Time-based delay ─────────────────────────
+  app-wait-time:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Waiting 10 seconds (fixed delay)...' &&
+        sleep 10 &&
+        echo 'Done waiting!'
+      "
+
+  # ── Web for HTTP check ───────────────────────────────────
+  web:
+    image: nginx:alpine
+    ports:
+      - "8193:80"

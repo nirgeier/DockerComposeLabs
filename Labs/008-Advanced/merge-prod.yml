@@ -1,0 +1,19 @@
+###
+### Production additions - Merge Demo
+###
+services:
+  app:
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: "512M"
+          cpus: "0.5"
+
+  db:
+    restart: always
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

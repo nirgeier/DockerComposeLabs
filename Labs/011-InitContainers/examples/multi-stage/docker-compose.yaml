@@ -1,0 +1,107 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+
+  # ── Init: Seed database ────────────────────────────────────
+  db-seed:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Seeding database...' &&
+        sleep 2 &&
+        echo 'Seed complete!'
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Init: Run schema migrations ────────────────────────────
+  db-migrate:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Running schema migrations version 002...' &&
+        sleep 3 &&
+        echo 'Migration applied!'
+      "
+    depends_on:
+      db-seed:
+        condition: service_completed_successfully
+
+  # ── Init: Warm up caches ───────────────────────────────────
+  cache-warm:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Warming up redis caches...' &&
+        sleep 2 &&
+        echo 'Cache warm!'
+      "
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── Init: Run data validation ──────────────────────────────
+  data-validate:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Validating data integrity...' &&
+        sleep 2 &&
+        echo 'Validation passed!'
+      "
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+
+  # ── Init: Generate assets ──────────────────────────────────
+  asset-gen:
+    image: alpine:latest
+    init: true
+    command: >
+      sh -c "
+        echo 'Generating static assets...' &&
+        mkdir -p /assets &&
+        echo '<html><body>Hello</body></html>' > /assets/index.html &&
+        echo 'Assets generated!'
+      "
+
+  # ── Main app ───────────────────────────────────────────────
+  app:
+    image: nginx:alpine
+    ports:
+      - "8192:80"
+    volumes:
+      - assets-data:/usr/share/nginx/html:ro
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+      data-validate:
+        condition: service_completed_successfully
+      cache-warm:
+        condition: service_completed_successfully
+      asset-gen:
+        condition: service_completed_successfully
+
+volumes:
+  assets-data:

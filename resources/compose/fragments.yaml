@@ -1,0 +1,229 @@
+###
+### Docker Compose Reusable Fragments
+### These fragments are designed to be used with YAML anchors (&) and aliases (<<: *)
+### or with the `extends:` mechanism.
+###
+### Usage:
+###   x-logging: &logging
+###     logging:
+###       driver: "json-file"
+###       options:
+###         max-size: "10m"
+###         max-file: "3"
+###
+###   services:
+###     web:
+###       image: nginx
+###       <<: *logging
+###
+
+# ── Logging ────────────────────────────────────────────────────────────────
+x-logging-json: &logging-json
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-logging-local: &logging-local
+  logging:
+    driver: "local"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-logging-syslog: &logging-syslog
+  logging:
+    driver: "syslog"
+    options:
+      syslog-address: "tcp://logs.example.com:514"
+      tag: "{{.Name}}/{{.ID}}"
+
+x-logging-gelf: &logging-gelf
+  logging:
+    driver: "gelf"
+    options:
+      gelf-address: "udp://graylog.example.com:12201"
+      tag: "{{.Name}}"
+
+x-logging-fluentd: &logging-fluentd
+  logging:
+    driver: "fluentd"
+    options:
+      fluentd-address: "localhost:24224"
+      tag: "{{.Name}}"
+
+x-logging-none: &logging-none
+  logging:
+    driver: "none"
+
+# ── Restart Policies ───────────────────────────────────────────────────────
+x-restart-no: &restart-no
+  restart: "no"
+
+x-restart-on-failure: &restart-on-failure
+  restart: "on-failure"
+
+x-restart-always: &restart-always
+  restart: "always"
+
+x-restart-unless-stopped: &restart-unless-stopped
+  restart: "unless-stopped"
+
+# ── Resource Constraints ───────────────────────────────────────────────────
+x-resources-small: &resources-small
+  deploy:
+    resources:
+      limits:
+        cpus: "0.25"
+        memory: "128M"
+      reservations:
+        cpus: "0.1"
+        memory: "64M"
+
+x-resources-medium: &resources-medium
+  deploy:
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+      reservations:
+        cpus: "0.25"
+        memory: "128M"
+
+x-resources-large: &resources-large
+  deploy:
+    resources:
+      limits:
+        cpus: "1"
+        memory: "512M"
+      reservations:
+        cpus: "0.5"
+        memory: "256M"
+
+# ── Healthchecks ───────────────────────────────────────────────────────────
+x-healthcheck-http: &healthcheck-http
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 10s
+
+x-healthcheck-tcp: &healthcheck-tcp
+  healthcheck:
+    test: ["CMD", "nc", "-z", "localhost", "5432"]
+    interval: 15s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
+x-healthcheck-pg: &healthcheck-pg
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 10s
+
+x-healthcheck-redis: &healthcheck-redis
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 10s
+    timeout: 3s
+    retries: 5
+
+# ── Networks ───────────────────────────────────────────────────────────────
+x-network-default: &network-default
+  networks:
+    default:
+      driver: bridge
+
+x-network-internal: &network-internal
+  networks:
+    internal:
+      driver: bridge
+      internal: true
+
+x-network-ipam: &network-ipam
+  networks:
+    backend:
+      driver: bridge
+      ipam:
+        config:
+          - subnet: "172.28.0.0/24"
+            gateway: "172.28.0.1"
+
+# ── Secrets ────────────────────────────────────────────────────────────────
+x-secrets-file: &secrets-file
+  secrets:
+    db_password:
+      file: ./secrets/db_password.txt
+    api_key:
+      file: ./secrets/api_key.txt
+
+x-secrets-external: &secrets-external
+  secrets:
+    tls_cert:
+      external: true
+    db_password:
+      external: true
+
+# ── Configs ────────────────────────────────────────────────────────────────
+x-configs-file: &configs-file
+  configs:
+    app_settings:
+      file: ./config/app.json
+    nginx_conf:
+      file: ./config/nginx.conf
+
+# ── Init Container ─────────────────────────────────────────────────────────
+x-init-wait-for-db: &init-wait-for-db
+  init: true
+  image: busybox:1.36
+  command: >
+    sh -c "until nc -z db 5432; do echo waiting for db; sleep 2; done"
+
+x-init-migrate: &init-migrate
+  init: true
+  image: myapp-migrations:latest
+  command: ["sh", "-c", "npm run migrate"]
+
+# ── Security ───────────────────────────────────────────────────────────────
+x-security-default: &security-default
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  cap_add:
+    - NET_BIND_SERVICE
+
+x-security-readonly: &security-readonly
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+# ── Profiles ───────────────────────────────────────────────────────────────
+x-profile-dev: &profile-dev
+  profiles:
+    - dev
+
+x-profile-staging: &profile-staging
+  profiles:
+    - staging
+
+x-profile-prod: &profile-prod
+  profiles:
+    - production
+
+x-profile-monitoring: &profile-monitoring
+  profiles:
+    - monitoring
+
+x-profile-debug: &profile-debug
+  profiles:
+    - debug

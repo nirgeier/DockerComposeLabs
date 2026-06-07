@@ -1,0 +1,3 @@
+[submodule ".mkdocs-shared"]
+	path = .mkdocs-shared
+	url = https://github.com/nirgeier/mkdocs.git

@@ -1,0 +1,153 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Profiles - Environment-Specific Setup
+# ──────────────────────────────────────────────────────────────
+# Use profiles to switch between dev/staging/prod environments
+# without maintaining separate compose files.
+# ──────────────────────────────────────────────────────────────
+
+x-profile-dev: &profile-dev
+  profiles: [dev]
+
+x-profile-staging: &profile-staging
+  profiles: [staging]
+
+x-profile-prod: &profile-prod
+  profiles: [production]
+
+x-profile-monitoring: &profile-monitoring
+  profiles: [monitoring]
+
+x-profile-ci: &profile-ci
+  profiles: [ci]
+
+# ── Common fragments ────────────────────────────────────────
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-restart: &restart
+  restart: unless-stopped
+
+x-resources-web: &resources-web
+  deploy:
+    resources:
+      limits: { cpus: "0.5", memory: "256M" }
+      reservations: { cpus: "0.25", memory: "128M" }
+
+x-resources-db: &resources-db
+  deploy:
+    resources:
+      limits: { cpus: "1", memory: "512M" }
+      reservations: { cpus: "0.5", memory: "256M" }
+
+# ── Services ─────────────────────────────────────────────────
+services:
+
+  # ═══════════════════════════════════════════════════════════
+  # CORE - Always start regardless of profile
+  # ═══════════════════════════════════════════════════════════
+  web:
+    image: nginx:alpine
+    ports:
+      - "${PORT_WEB:-8181}:80"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+    <<: [*logging, *restart, *resources-web]
+
+  api:
+    image: node:20-alpine
+    command: >
+      sh -c "node -e \"require('http').createServer((q,r) => r.end(JSON.stringify({env:process.env.NODE_ENV,profile:process.env.PROFILE}))).listen(3000)\""
+    ports:
+      - "${PORT_API:-8182}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PROFILE=${PROFILE:-none}
+    depends_on:
+      - db
+    <<: [*logging, *restart, *resources-web]
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASS:-example}
+      POSTGRES_DB: myapp_${ENV_SUFFIX:-prod}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    <<: [*logging, *restart, *resources-db]
+
+  redis:
+    image: redis:7-alpine
+    <<: [*logging, *restart]
+
+  # ═══════════════════════════════════════════════════════════
+  # DEV profile
+  # ═══════════════════════════════════════════════════════════
+  adminer:
+    image: adminer
+    ports:
+      - "8183:8080"
+    <<: [*logging, *profile-dev]
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8184:8025"
+      - "1025:1025"
+    <<: [*logging, *profile-dev]
+
+  # ═══════════════════════════════════════════════════════════
+  # STAGING profile
+  # ═══════════════════════════════════════════════════════════
+  load-tester:
+    image: grafana/k6:latest
+    volumes:
+      - ./k6-scripts:/scripts
+    <<: [*profile-staging]
+
+  # ═══════════════════════════════════════════════════════════
+  # CI profile
+  # ═══════════════════════════════════════════════════════════
+  test-runner:
+    image: node:20-alpine
+    command: ["sh", "-c", "echo 'Running tests...' && sleep 5 && echo 'Tests passed'"]
+    <<: [*profile-ci]
+
+  lint-checker:
+    image: hadolint/hadolint:latest
+    command: ["hadolint", "/Dockerfile"]
+    volumes:
+      - ../Dockerfile:/Dockerfile
+    <<: [*profile-ci]
+
+  # ═══════════════════════════════════════════════════════════
+  # MONITORING profile
+  # ═══════════════════════════════════════════════════════════
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    <<: [*logging, *profile-monitoring]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    <<: [*logging, *profile-monitoring]
+
+  # ═══════════════════════════════════════════════════════════
+  # PRODUCTION profile (additional prod-only services)
+  # ═══════════════════════════════════════════════════════════
+  backup-agent:
+    image: alpine:latest
+    command: >
+      sh -c "echo 'Backup agent running in production mode' && sleep infinity"
+    <<: [*logging, *profile-prod]
+
+volumes:
+  pgdata:

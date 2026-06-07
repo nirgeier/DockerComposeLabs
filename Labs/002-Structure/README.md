@@ -1,12 +1,25 @@
-![](../../resources/logos.png)
+<!-- header start -->
 
-[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/nirgeier/DockerComposeLabs)
+<a href="https://stackoverflow.com/users/1755598/codewizard"><img src="https://stackoverflow.com/users/flair/1755598.png" width="208" height="58" alt="profile for CodeWizard at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for CodeWizard at Stack Overflow, Q&amp;A for professional and enthusiast programmers"></a>&emsp;&emsp;[![Linkedin Badge](https://img.shields.io/badge/-nirgeier-blue?style=flat&logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/nirgeier/)](https://www.linkedin.com/in/nirgeier/)&emsp;[![Gmail Badge](https://img.shields.io/badge/-nirgeier@gmail.com-fcc624?style=flat&logo=Gmail&logoColor=red&link=mailto:nirgeier@gmail.com)](mailto:nirgeier@gmail.com)&emsp;[![Outlook Badge](https://img.shields.io/badge/-nirg@codewizard.co.il-fcc624?style=flat&logo=microsoftoutlook&logoColor=blue&link=mailto:nirg@codewizard.co.il)](mailto:nirg@codewizard.co.il)
 
-### **<kbd>CTRL</kbd> + click to open in new window**
+<!-- header end -->
 
 ---
 
 # Docker Compose Structure - Complete Guide
+
+- This comprehensive lab covers the complete structure and syntax of Docker Compose files.
+- You'll learn about all the major configuration options, from basic service definitions to advanced features.
+
+---
+
+![](../../resources/lab.jpg)
+
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/nirgeier/DockerComposeLabs)
+
+**<kbd>CTRL</kbd> + click to open in new window**
+
+---
 
 ## Description
 
@@ -44,11 +57,11 @@ This comprehensive guide covers the complete structure and anatomy of Docker Com
     - [`networks` (Defining Networks)](#networks-defining-networks)
 
 ### Example of a `docker-compose.yml` file structure
-  
+
 - Here is a simple example of a `docker-compose.yml` file structure:
 
 ```yaml
-version: '3.8' # Compose file format version
+version: "3.8" # Compose file format version
 
 services:
   # Here we define our services (containers)
@@ -69,25 +82,25 @@ networks:
 
 Now, let's detail the most common features you can use within each service definition:
 
-| Feature       | Description                                                                 |
-|---------------|-----------------------------------------------------------------------------|
-| `build`       | Specifies the build context or Dockerfile for creating container images.   |
-| `command`     | Overrides the default command defined in the image.                        |
-| `configs`     | Defines configuration files for services. Configs let services to adapt their behavior **without the need to rebuild** a Docker image.                                   |
-| `container_name` | Assigns a custom name to the container.                                 |
-| `depends_on`  | Defines service dependencies, controlling startup order.                   |
-| `entrypoint`  | Overrides the default entry point defined in the image.                    |
-| `environment` | Sets environment variables for services.                                   |
-| `healthcheck` | Defines commands to check the health of a service.                         |
-| `image`       | Specifies an existing Docker image to use.                                  |
-| `links`       | **(Legacy)** Links services; replaced by `networks`.                        |
-| `networks`    | Defines custom networks for your containers.                                |
-| `ports`       | Maps container ports to host machine ports.                                |
-| `restart`     | Configures restart policies for containers (e.g., `always`, `on-failure`). |
-| `secrets`     | Defines secrets for sensitive data (e.g., passwords, API keys).            |
-| `version`     | Specifies the Compose file format version.                                  |
-| `volumes`     | Defines volumes used for persistent data storage.                           |
-| `x-<feature_name>` | Custom extension fields for reusable configurations. |
+| Feature            | Description                                                                                                                            |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `build`            | Specifies the build context or Dockerfile for creating container images.                                                               |
+| `command`          | Overrides the default command defined in the image.                                                                                    |
+| `configs`          | Defines configuration files for services. Configs let services to adapt their behavior **without the need to rebuild** a Docker image. |
+| `container_name`   | Assigns a custom name to the container.                                                                                                |
+| `depends_on`       | Defines service dependencies, controlling startup order.                                                                               |
+| `entrypoint`       | Overrides the default entry point defined in the image.                                                                                |
+| `environment`      | Sets environment variables for services.                                                                                               |
+| `healthcheck`      | Defines commands to check the health of a service.                                                                                     |
+| `image`            | Specifies an existing Docker image to use.                                                                                             |
+| `links`            | **(Legacy)** Links services; replaced by `networks`.                                                                                   |
+| `networks`         | Defines custom networks for your containers.                                                                                           |
+| `ports`            | Maps container ports to host machine ports.                                                                                            |
+| `restart`          | Configures restart policies for containers (e.g., `always`, `on-failure`).                                                             |
+| `secrets`          | Defines secrets for sensitive data (e.g., passwords, API keys).                                                                        |
+| `version`          | Specifies the Compose file format version.                                                                                             |
+| `volumes`          | Defines volumes used for persistent data storage.                                                                                      |
+| `x-<feature_name>` | Custom extension fields for reusable configurations.                                                                                   |
 
 ## Feature Details
 
@@ -96,22 +109,22 @@ Now, let's detail the most common features you can use within each service defin
 - **Purpose:** Specifies the Compose file format version. Each version has specific features and rules. It's recommended to use recent 3.x versions.
 - **Example:**
 
-    ```yaml
-    version: '3.8'
-    ```
+  ```yaml
+  version: "3.8"
+  ```
 
 ### `services`
 
 - **Purpose:** The top-level key that defines all the different containers that make up your application. Each key under `services` is your service name.
 - **Example:**
 
-    ```yaml
-    services:
-      web:
-        # configurations for the web service
-      db:
-        # configurations for the db service
-    ```
+  ```yaml
+  services:
+    web:
+      # configurations for the web service
+    db:
+      # configurations for the db service
+  ```
 
 ### `build` (Building an Image)
 
@@ -123,32 +136,32 @@ Now, let's detail the most common features you can use within each service defin
   - `target` (optional): A specific build stage to target from a multi-stage `Dockerfile`.
 - **Example:**
 
-    ```yaml
-    services:
-      webapp:
-        build:
-          context: ./my_app # Builds an image from the 'my_app' directory (where Dockerfile resides)
-          dockerfile: Dockerfile.dev # Uses Dockerfile.dev file
-          args:
-            NODE_VERSION: "18"
-        ports:
-          - "80:80"
-    ```
+  ```yaml
+  services:
+    webapp:
+      build:
+        context: ./my_app # Builds an image from the 'my_app' directory (where Dockerfile resides)
+        dockerfile: Dockerfile.dev # Uses Dockerfile.dev file
+        args:
+          NODE_VERSION: "18"
+      ports:
+        - "80:80"
+  ```
 
 ### `image` (Using an Existing Image)
 
 - **Purpose:** Instructs Compose to pull and use an existing Docker image from a registry like Docker Hub.
 - **Example:**
 
-    ```yaml
-    services:
-      database:
-        image: postgres:15 # Uses the Postgres image at version 15
-        environment:
-          POSTGRES_DB: mydatabase
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-    ```
+  ```yaml
+  services:
+    database:
+      image: postgres:15 # Uses the Postgres image at version 15
+      environment:
+        POSTGRES_DB: mydatabase
+        POSTGRES_USER: user
+        POSTGRES_PASSWORD: password
+  ```
 
 ### `command` and `entrypoint`
 
@@ -183,15 +196,15 @@ Now, let's detail the most common features you can use within each service defin
   - `"CONTAINER_PORT"`: A random available host port will be mapped to `CONTAINER_PORT`.
 - **Example:**
 
-    ```yaml
-    services:
-      web:
-        image: nginx:latest
-        ports:
-          - "80:80"     # Host port 80 maps to container port 80
-          - "443:443"   # Host port 443 maps to container port 443
-          - "8080"      # Container port 8080 maps to a random host port
-    ```
+  ```yaml
+  services:
+    web:
+      image: nginx:latest
+      ports:
+        - "80:80" # Host port 80 maps to container port 80
+        - "443:443" # Host port 443 maps to container port 443
+        - "8080" # Container port 8080 maps to a random host port
+  ```
 
 ### `volumes` (Volume Management)
 
@@ -201,21 +214,20 @@ Now, let's detail the most common features you can use within each service defin
   - `"VOLUME_NAME:CONTAINER_PATH"`: Named volume.
 - **Example:**
 
-    ```yaml
-    services:
-      db:
-        image: postgres:15
-        volumes:
-          - db_data:/var/lib/postgresql/data # Named volume for persistent DB data
-          - ./app/config:/etc/app/config     # Bind mount: maps host folder to container (for config files)
-
-    ```
+  ```yaml
+  services:
+    db:
+      image: postgres:15
+      volumes:
+        - db_data:/var/lib/postgresql/data # Named volume for persistent DB data
+        - ./app/config:/etc/app/config # Bind mount: maps host folder to container (for config files)
+  ```
 
 volumes: \# Global volume definitions
-db\_data:
+db_data:
 driver: local \# Volume driver (default)
-\# You can also add options or driver\_opts for advanced configurations,
-\# e.g., driver\_opts: {type: nfs, o: "addr=192.168.1.100,nolock,rw", device: ":/export/data"}
+\# You can also add options or driver_opts for advanced configurations,
+\# e.g., driver_opts: {type: nfs, o: "addr=192.168.1.100,nolock,rw", device: ":/export/data"}
 \# but this is less common for a simple guide.
 \`\`\`
 
@@ -227,104 +239,104 @@ driver: local \# Volume driver (default)
   - Map of `KEY: VALUE` pairs.
 - **Example:**
 
-    ```yaml
-    services:
-      api:
-        image: my_api_image
-        environment:
-          API_KEY: your_api_key
-          DATABASE_URL: postgres://user:password@db:5432/mydb
-          NODE_ENV: development
-          - DEBUG=true # Another format for lists
-    ```
+  ```yaml
+  services:
+    api:
+      image: my_api_image
+      environment:
+        API_KEY: your_api_key
+        DATABASE_URL: postgres://user:password@db:5432/mydb
+        NODE_ENV: development
+        - DEBUG=true # Another format for lists
+  ```
 
-    *Tip: For sensitive variables, consider using a `.env` file (in the same directory as your `docker-compose.yml`) or Docker Secrets.*
+  _Tip: For sensitive variables, consider using a `.env` file (in the same directory as your `docker-compose.yml`) or Docker Secrets._
 
 ### `depends_on` (Service Dependencies)
 
-- **Purpose:** Defines the startup order between services. Services will only start after the services they depend on have been started. *Important: `depends_on` ensures the container has started, but not necessarily that the service within it is ready to accept connections (e.g., a database fully booted and listening).*
+- **Purpose:** Defines the startup order between services. Services will only start after the services they depend on have been started. _Important: `depends_on` ensures the container has started, but not necessarily that the service within it is ready to accept connections (e.g., a database fully booted and listening)._
 - **Example:**
 
-    ```yaml
-    services:
-      web:
-        image: my_web_app
-        depends_on:
-          - api # The web service will start only after the api service has started
-          - db  # And the db service has started
-        ports:
-          - "80:80"
-      api:
-        image: my_api_service
-        depends_on:
-          - db # The api service will start only after the db service has started
-        ports:
-          - "3000:3000"
-      db:
-        image: postgres:15
-    ```
+  ```yaml
+  services:
+    web:
+      image: my_web_app
+      depends_on:
+        - api # The web service will start only after the api service has started
+        - db # And the db service has started
+      ports:
+        - "80:80"
+    api:
+      image: my_api_service
+      depends_on:
+        - db # The api service will start only after the db service has started
+      ports:
+        - "3000:3000"
+    db:
+      image: postgres:15
+  ```
 
 ### `networks` (Defining Networks)
 
 - **Purpose:** Allows you to define custom networks so that services can communicate with each other. Services on the same network can communicate using their service names (DNS resolution).
 - **Example:**
 
-    ```yaml
-    services:
-      web:
-        image: nginx
-        ports:
-          - "80:80"
-        networks:
-          - frontend_network # Connected to frontend_network
-          - backend_network  # Connected to backend_network
-      api:
-        image: my_api_app
-        networks:
-          - backend_network  # Connected to backend_network
-      db:
-        image: postgres:15
-        networks:
-          - db_network # Connected to db_network
+  ```yaml
+  services:
+    web:
+      image: nginx
+      ports:
+        - "80:80"
+      networks:
+        - frontend_network # Connected to frontend_network
+        - backend_network # Connected to backend_network
+    api:
+      image: my_api_app
+      networks:
+        - backend_network # Connected to backend_network
+    db:
+      image: postgres:15
+      networks:
+        - db_network # Connected to db_network
 
-    networks:  # Global network definitions
-    frontend_network:
-      # driver: bridge (default)
-    backend_network:
-      # driver: bridge
-    db_network:
-      internal: true # Internal network only (not accessible from the host)
-      # ipam:
-      #   config:
-      #     - subnet: 172.20.0.0/24 # Defines an IP range for the network for the  
-   ```
+  networks: # Global network definitions
+  frontend_network:
+    # driver: bridge (default)
+  backend_network:
+    # driver: bridge
+  db_network:
+    internal: true # Internal network only (not accessible from the host)
+    # ipam:
+    #   config:
+    #     - subnet: 172.20.0.0/24 # Defines an IP range for the network for the
+  ```
 
 ### `links` (Linking Services - Legacy)
 
 - **Purpose:** Allows linking older services (pre-Compose v2) and provides aliases for hostnames. **It is highly recommended to use `networks` instead of `links` in newer Compose versions (v2 and above), as `links` is considered legacy.**
 - **Example (Not recommended for new usage):**
 
-    ```yaml
-    services:
-      web:
-        image: my_web_app
-        links:
-          - db:database_alias # Links to 'db' and gives it an alias 'database_alias'
-    ```
+  ```yaml
+  services:
+    web:
+      image: my_web_app
+      links:
+        - db:database_alias # Links to 'db' and gives it an alias 'database_alias'
+  ```
 
 ### `container_name` (Custom Container Name)
 
 - **Purpose:** Allows you to specify a custom name for the running container, instead of the name Docker Compose automatically generates (usually `project_service_index`).
 - **Example:**
 
-    ```yaml
-    services:
-      my_web:
-        image: nginx
-        container_name: my_nginx_server # The container will be named 'my_nginx_server'
-        ports:
-          - "80:80"
-    ```
+  ```yaml
+  services:
+    my_web:
+      image: nginx
+      container_name: my_nginx_server # The container will be named 'my_nginx_server'
+      ports:
+        - "80:80"
+  ```
 
 ### `restart` (Restart Policy)
 
@@ -336,12 +348,12 @@ driver: local \# Volume driver (default)
   - `unless-stopped`: Always restarts unless it is explicitly stopped.
 - **Example:**
 
-    ```yaml
-    services:
-      app:
-        image: my_app
-        restart: unless-stopped # Always restarts, unless manually stopped
-    ```
+  ```yaml
+  services:
+    app:
+      image: my_app
+      restart: unless-stopped # Always restarts, unless manually stopped
+  ```
 
 ### `healthcheck` (Health Check)
 
@@ -354,34 +366,34 @@ driver: local \# Volume driver (default)
   - `start_period`: Initialization time to allow a container to bootstrap. During this period, health check failures will not count towards the maximum retries (default: 0s).
 - **Example:**
 
-    ```yaml
-    services:
-      web:
-        image: my_web_app
-        ports:
-          - "80:80"
-        depends_on:
-          api:
-            condition: service_healthy # The web service will only start after 'api' is healthy
-        healthcheck:
-          # Checks if web server responds
-          test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"] 
-          interval: 10s
-          timeout: 5s
-          retries: 3
-          # Give the service 20 seconds to start up initially
-          # before starting health checks
-          start_period: 20s api:
-        image: my_api_service
-        ports:
-          - "3000:3000"
-        healthcheck:
-          # Checks a health endpoint
-          test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"] 
-          interval: 5s
-          timeout: 3s
-          retries: 5
-    ```
+  ```yaml
+  services:
+    web:
+      image: my_web_app
+      ports:
+        - "80:80"
+      depends_on:
+        api:
+          condition: service_healthy # The web service will only start after 'api' is healthy
+      healthcheck:
+        # Checks if web server responds
+        test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+        interval: 10s
+        timeout: 5s
+        retries: 3
+        # Give the service 20 seconds to start up initially
+        # before starting health checks
+        start_period: 20s api:
+      image: my_api_service
+      ports:
+        - "3000:3000"
+      healthcheck:
+        # Checks a health endpoint
+        test: ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
+        interval: 5s
+        timeout: 3s
+        retries: 5
+  ```
 
 ---
 
@@ -390,7 +402,7 @@ driver: local \# Volume driver (default)
 Here's an example combining many of the features discussed, illustrating a simple web application with a backend API and a database:
 
 ```yaml
-version: '3.8'
+version: "3.8"
 
 services:
   web:
@@ -467,9 +479,267 @@ volumes:
 
 networks:
   app_network: # Network for web and API communication
-  db_network:  # Network for API and DB communication (can be internal for better isolation)
+  db_network: # Network for API and DB communication (can be internal for better isolation)
     internal: true # Makes this network only accessible by containers connected to it, not from the host directly
 ```
+
+## Hands-On Tasks
+
+### Task 1: Service Configuration
+
+Create a docker-compose.yml with a single web service using different configuration options.
+
+```yaml
+version: "3.8"
+services:
+  web:
+    image: nginx:alpine
+    container_name: my-web-server
+    ports:
+      - "8080:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    restart: unless-stopped
+```
+
+```bash
+# 1. Save the YAML above as docker-compose.yml
+docker compose up -d
+# 2. Verify the container name
+docker compose ps
+# 3. Check environment variables
+docker compose exec web env | grep NGINX
+# 4. Verify port mapping
+curl -s -o /dev/null -w "%{http_code}" http://localhost:8080
+# 5. Clean up
+docker compose down
+```
+
+**Expected Outcome:** A single nginx service runs with custom naming, port mapping, and environment variables.
+
+---
+
+### Task 2: Volumes and Data Persistence
+
+Practice different volume types: bind mount, named volume.
+
+```yaml
+version: "3.8"
+services:
+  web:
+    image: nginx:alpine
+    volumes:
+      - ./html:/usr/share/nginx/html
+      - nginx_logs:/var/log/nginx
+    ports:
+      - "8080:80"
+volumes:
+  nginx_logs:
+```
+
+```bash
+mkdir -p html
+echo "<h1>Hello from bind mount</h1>" > html/index.html
+docker compose up -d
+curl http://localhost:8080
+docker volume ls | grep nginx_logs
+echo "<h1>Updated content</h1>" > html/index.html
+curl http://localhost:8080
+docker compose down --volumes
+rm -rf html
+```
+
+**Expected Outcome:** Bind mounts reflect live file changes; named volumes persist.
+
+---
+
+### Task 3: Networks and Service Discovery
+
+Create two services on isolated networks.
+
+```yaml
+version: "3.8"
+services:
+  app:
+    image: nginx:alpine
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: secret
+    networks:
+      - backend
+networks:
+  frontend:
+  backend:
+    internal: true
+```
+
+```bash
+docker compose up -d
+docker compose exec app sh -c "nc -zv db 5432"
+docker network ls | grep "002-structure"
+docker compose down --volumes
+```
+
+**Expected Outcome:** Services communicate via DNS names across networks.
+
+---
+
+### Task 4: Health Checks and Dependencies
+
+Implement health checks with controlled startup order.
+
+```yaml
+version: "3.8"
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: healthcheck_pass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+  app:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+```
+
+```bash
+docker compose up -d
+docker compose logs -f
+docker compose ps
+docker compose down --volumes
+```
+
+**Expected Outcome:** The app service waits for the DB healthcheck to pass before starting.
+
+---
+
+### Task 5: Extension Fields (x-*)
+
+Use YAML extension fields for reusable configuration blocks.
+
+```yaml
+version: "3.8"
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+x-resources: &resources
+  deploy:
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+services:
+  web:
+    image: nginx:alpine
+    <<: [*logging, *resources]
+    ports:
+      - "8080:80"
+  redis:
+    image: redis:7-alpine
+    <<: [*logging, *resources]
+```
+
+```bash
+docker compose up -d
+docker compose config | grep -A5 logging
+docker compose down
+```
+
+**Expected Outcome:** Extension fields reduce duplication across services.
+
+---
+
+### Task 6: Restart Policies
+
+Test different restart policies.
+
+```yaml
+version: "3.8"
+services:
+  always-restart:
+    image: alpine
+    restart: always
+    command: sh -c "sleep 3 && exit 1"
+  no-restart:
+    image: alpine
+    restart: "no"
+    command: sh -c "sleep 3 && exit 1"
+```
+
+```bash
+docker compose up -d
+sleep 10
+docker compose ps
+docker compose down
+```
+
+**Expected Outcome:** Services with `always` restart after crash; `no` stays stopped.
+
+---
+
+### Task 7: Build Context
+
+Build a custom image from a Dockerfile.
+
+```bash
+mkdir -p app
+cat > app/Dockerfile << 'EOF'
+FROM alpine
+CMD echo "Built with Docker Compose!"
+EOF
+```
+
+```yaml
+version: "3.8"
+services:
+  app:
+    build:
+      context: ./app
+    image: my-custom-app
+```
+
+```bash
+docker compose build
+docker images | grep my-custom-app
+docker compose up
+docker compose down
+docker rmi my-custom-app
+rm -rf app
+```
+
+**Expected Outcome:** Custom images are built from Dockerfiles using the `build` directive.
+
+---
+
+## Verification Checklist
+
+- [ ] I understand service configuration (image, ports, environment, restart)
+- [ ] I can use bind mounts and named volumes
+- [ ] I can create custom networks with isolation
+- [ ] I can implement health checks with depends_on conditions
+- [ ] I can use extension fields (x-*) for reusable config
+- [ ] I understand how restart policies behave
+- [ ] I can build custom images with the build directive
+
+---
 
 ## Navigation <!-- omit in toc -->
 

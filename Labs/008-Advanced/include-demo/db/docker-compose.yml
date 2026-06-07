@@ -1,0 +1,9 @@
+###
+### DB service - Include Demo
+###
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: myapp

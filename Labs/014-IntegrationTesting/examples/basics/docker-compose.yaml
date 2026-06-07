@@ -1,0 +1,25 @@
+services:
+  app:
+    image: nginx:alpine
+    ports:
+      - "8201:80"
+
+  test:
+    image: alpine:latest
+    command: >
+      sh -c "
+        echo 'Waiting for app...' &&
+        apk add --no-cache curl &&
+        until curl -sf http://app:80; do sleep 1; done &&
+        echo 'App is healthy!' &&
+        RESPONSE=\$(curl -s -o /dev/null -w '%{http_code}' http://app:80) &&
+        if [ \"\$RESPONSE\" = \"200\" ]; then
+          echo 'TEST PASSED: Got HTTP 200'
+          exit 0
+        else
+          echo 'TEST FAILED: Got HTTP '\$RESPONSE
+          exit 1
+        fi
+      "
+    depends_on:
+      - app

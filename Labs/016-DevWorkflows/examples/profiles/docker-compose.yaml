@@ -1,0 +1,51 @@
+services:
+  app:
+    image: nginx:alpine
+    ports:
+      - "8211:80"
+    profiles:
+      - core
+      - full
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: devpass
+    profiles:
+      - core
+      - full
+
+  redis:
+    image: redis:7-alpine
+    profiles:
+      - full
+
+  adminer:
+    image: adminer
+    ports:
+      - "8081:8080"
+    profiles:
+      - full
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    profiles:
+      - full
+      - debug
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    profiles:
+      - debug
+
+  test:
+    image: alpine:latest
+    command: ["echo", "Running tests..."]
+    profiles:
+      - ci

@@ -1,4 +1,14 @@
 apiVersion: v2
 name: loki
+description: A Helm chart for loki on Kubernetes
+type: application
 version: 0.1.0
-description: Helm chart for Loki
+appVersion: "1.0.0"
+keywords:
+  - loki
+  - monitoring
+sources:
+  - https://github.com/nirgeier/DockerComposeLabs
+maintainers:
+  - name: Nir Geier
+    email: nirgeier@gmail.com

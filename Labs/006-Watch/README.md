@@ -1,8 +1,23 @@
+<!-- header start -->
+
+<a href="https://stackoverflow.com/users/1755598/codewizard"><img src="https://stackoverflow.com/users/flair/1755598.png" width="208" height="58" alt="profile for CodeWizard at Stack Overflow, Q&amp;A for professional and enthusiast programmers" title="profile for CodeWizard at Stack Overflow, Q&amp;A for professional and enthusiast programmers"></a>&emsp;&emsp;[![Linkedin Badge](https://img.shields.io/badge/-nirgeier-blue?style=flat&logo=Linkedin&logoColor=white&link=https://www.linkedin.com/in/nirgeier/)](https://www.linkedin.com/in/nirgeier/)&emsp;[![Gmail Badge](https://img.shields.io/badge/-nirgeier@gmail.com-fcc624?style=flat&logo=Gmail&logoColor=red&link=mailto:nirgeier@gmail.com)](mailto:nirgeier@gmail.com)&emsp;[![Outlook Badge](https://img.shields.io/badge/-nirg@codewizard.co.il-fcc624?style=flat&logo=microsoftoutlook&logoColor=blue&link=mailto:nirg@codewizard.co.il)](mailto:nirg@codewizard.co.il)
+
+<!-- header end -->
+
+---
+
+# Docker Compose Watch
+
+- This lab demonstrates the Docker Compose Watch feature for live development.
+- You'll learn about automatic file synchronization and hot reloading.
+
+---
 
 ![](../../resources/lab.jpg)
+
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/nirgeier/DockerComposeLabs)
 
-### **<kbd>CTRL</kbd> + click to open in new window**
+**<kbd>CTRL</kbd> + click to open in new window**
 
 ---
 
@@ -56,7 +71,7 @@ Facilitates quick testing of changes in isolated container environments.
 ### Example 1: Basic Application Code Watching
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   app:
     build: .
@@ -75,7 +90,7 @@ services:
 ### Example 2: Configuration File Watching
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   app:
     build: .
@@ -91,7 +106,7 @@ services:
 ### Example 3: Multi-Service Watch Setup
 
 ```yaml
-version: '3.8'
+version: "3.8"
 services:
   frontend:
     build: ./frontend
@@ -100,7 +115,7 @@ services:
         - action: sync
           path: ./frontend/src
           target: /app/src
-  
+
   backend:
     build: ./backend
     develop:

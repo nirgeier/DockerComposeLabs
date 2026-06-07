@@ -1,0 +1,12 @@
+###
+### mkdocs-site.yml
+###
+docs_dir: Labs
+edit_uri: ""
+repo_name: nirgeier/DockerComposeLabs
+repo_url: https://github.com/nirgeier/DockerComposeLabs
+site_author: Nir Geier - nirgeier@gmail.com
+site_description: A collection of Docker Compose Labs for learning and practicing Docker Compose skills.
+site_dir: ./mkdocs-site
+site_name: DockerComposeLabs
+site_url: https://nirgeier.github.io/DockerComposeLabs/

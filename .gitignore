@@ -1,3 +1,37 @@
-shared_volume/
+# MkDocs
+**/mkdocs-site/**
+
+# IDE / Editor
 .history
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+**/.venv/**
+
+# Python
+.venv
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Node
 **/node_modules/**
+
+# Vercel
+.vercel
+
+# Shared volume
+shared_volume/
+
+# Generated assets
+.mkdocs-build/
+.mkdocs_cache/
+
+# Backup files
+*.bak
+*.backup

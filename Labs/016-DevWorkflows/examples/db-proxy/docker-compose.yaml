@@ -1,0 +1,41 @@
+services:
+  app:
+    image: alpine:latest
+    command: >
+      sh -c "
+        echo 'Connecting via proxy...' &&
+        apk add --no-cache postgresql-client &&
+        PG_PASSWORD=devpass psql -h db-proxy -U devuser -d devdb -c 'SELECT 1 AS connected;'
+      "
+
+  db-proxy:
+    image: alpine:latest
+    command: >
+      sh -c "
+        apk add --no-cache socat &&
+        echo 'Starting DB proxy on port 5432...' &&
+        socat TCP-LISTEN:5432,fork TCP:db:5432
+      "
+    ports:
+      - "25432:5432"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: devpass
+      POSTGRES_DB: devdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devuser -d devdb"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -1,0 +1,72 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Profiles - Basic Example
+# ──────────────────────────────────────────────────────────────
+# Services without a profile ALWAYS start.
+# Services WITH a profile start only when that profile is active.
+# ──────────────────────────────────────────────────────────────
+
+x-profile-dev: &profile-dev
+  profiles:
+    - dev
+
+x-profile-debug: &profile-debug
+  profiles:
+    - debug
+
+x-profile-monitoring: &profile-monitoring
+  profiles:
+    - monitoring
+
+services:
+
+  # ── Core services (always start) ────────────────────────
+  web:
+    image: nginx:alpine
+    ports:
+      - "8181:80"
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+
+  # ── Dev services (profile: dev) ─────────────────────────
+  adminer:
+    image: adminer
+    ports:
+      - "8182:8080"
+    <<: *profile-dev
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8183:8025"
+      - "1025:1025"
+    <<: *profile-dev
+
+  # ── Debug services (profile: debug) ─────────────────────
+  netshoot:
+    image: nicolaka/netshoot:latest
+    command: ["sleep", "infinity"]
+    <<: *profile-debug
+
+  # ── Monitoring (profile: monitoring) ────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    <<: *profile-monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    <<: *profile-monitoring
+
+volumes:
+  pgdata:

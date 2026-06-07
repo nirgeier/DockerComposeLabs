@@ -1,11 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: grafana
+  name: {{ include "grafana.fullname" . }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
 spec:
-  selector:
-    app: grafana
+  type: {{ .Values.service.type }}
   ports:
-    - protocol: TCP
-      port: {{ .Values.grafana.port }}
-      targetPort: {{ .Values.grafana.port }}
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "grafana.selectorLabels" . | nindent 4 }}

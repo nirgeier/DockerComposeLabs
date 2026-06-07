@@ -1,0 +1,17 @@
+services:
+  app-base:
+    image: node:20-alpine
+    command: ["node", "-e", "require('http').createServer((req,res) => res.end('ok')).listen(3000)"]
+    networks:
+      - backend
+    environment:
+      - NODE_ENV=development
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  backend:
+    driver: bridge

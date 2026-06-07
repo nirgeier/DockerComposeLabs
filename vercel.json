@@ -1,0 +1,11 @@
+{
+    "installCommand": "pip install --break-system-packages -r mkdocs/requirements.txt",
+    "buildCommand": "python3 -m mkdocs build",
+    "outputDirectory": "mkdocs-site",
+    "public": false,
+    "git": {
+        "deploymentEnabled": {
+            "master": true
+        }
+    }
+}

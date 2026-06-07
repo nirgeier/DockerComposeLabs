@@ -1,0 +1,147 @@
+###
+### Docker Compose Advanced Demo
+### Demonstrates profiles, secrets, configs, resource constraints, logging, init containers
+###
+version: "3.8"
+
+# ── Reusable Fragments ──────────────────────────────────────────────────
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-resources: &resources
+  deploy:
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+
+x-restart: &restart
+  restart: unless-stopped
+
+# ── Services ────────────────────────────────────────────────────────────
+services:
+  # ── Profile Demo ──────────────────────────────────────────────────────
+  web:
+    image: nginx:alpine
+    profiles:
+      - dev
+      - staging
+      - production
+    ports:
+      - "${APP_PORT:-8080}:80"
+    <<: *logging
+    <<: *restart
+
+  db:
+    image: postgres:16-alpine
+    profiles:
+      - dev
+      - staging
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - db_password
+    <<: *logging
+    <<: *restart
+    <<: *resources
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    profiles:
+      - dev
+      - staging
+      - production
+    <<: *restart
+
+  monitoring:
+    image: prom/prometheus:v2.45.3
+    profiles:
+      - staging
+      - production
+      - monitoring
+    <<: *logging
+    <<: *restart
+    <<: *resources
+
+  debug:
+    image: busybox:1.36
+    profiles:
+      - debug
+    command: sleep 3600
+
+  # ── Init Container Demo ───────────────────────────────────────────────
+  db-migrate:
+    image: busybox:1.36
+    command: >
+      sh -c "echo 'Running database migrations...' && sleep 5 && echo 'Migrations complete!'"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    image: nginx:alpine
+    ports:
+      - "${APP_PORT:-8081}:80"
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    <<: *logging
+    <<: *restart
+
+  # ── Config Demo ───────────────────────────────────────────────────────
+  nginx-config:
+    image: nginx:alpine
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/conf.d/default.conf
+    ports:
+      - "${NGINX_CONFIG_PORT:-8082}:80"
+    <<: *restart
+
+  # ── Logging Demo ──────────────────────────────────────────────────────
+  logs-json:
+    image: alpine
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    command: >
+      sh -c "while true; do echo '{\"level\":\"info\",\"msg\":\"json-file log entry\"}'; sleep 2; done"
+
+  logs-local:
+    image: alpine
+    logging:
+      driver: "local"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    command: >
+      sh -c "while true; do echo 'local driver log entry'; sleep 2; done"
+
+  logs-none:
+    image: alpine
+    logging:
+      driver: "none"
+    command: >
+      sh -c "while true; do echo 'this will not appear'; sleep 2; done"
+
+# ── Secrets ────────────────────────────────────────────────────────────
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+
+# ── Configs ────────────────────────────────────────────────────────────
+configs:
+  nginx_conf:
+    file: ./config/nginx.conf

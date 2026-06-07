@@ -1,0 +1,35 @@
+services:
+  web:
+    image: nginx:${NGINX_TAG:-alpine}
+    ports:
+      - "${PORT:-8196}:80"
+    environment:
+      # ── Substitution methods ──────────────────────────────
+      # Default value
+      APP_NAME: ${APP_NAME:-MyApp}
+
+      # Mandatory (fails if unset)
+      API_KEY: "${API_KEY:?API key required}"
+
+      # Empty string if unset
+      OPTIONAL_FEATURE: ${OPTIONAL_FEATURE:-}
+
+      # Literal dollar sign (escaping)
+      RAW_DOLLAR: $$not_a_variable
+
+      # Nested variable (indirect reference)
+      ENV_NAME: ${ENV_NAME:-${DEFAULT_ENV:-development}}
+
+      # Shell command execution
+      BUILD_TIME: ${BUILD_TIME:-unknown}
+
+      # Concatenation
+      DB_URL: "postgres://${DB_USER:-app}:${DB_PASS:-secret}@${DB_HOST:-db}:5432/${DB_NAME:-myapp}"
+
+      # Array from env var
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost}
+
+    # ── Config from external file ──────────────────────────
+    env_file:
+      - ${ENV_FILE:-./.env}
+      - ./secrets/env.${APP_ENV:-dev}

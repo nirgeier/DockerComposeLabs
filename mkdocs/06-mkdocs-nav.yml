@@ -1,0 +1,25 @@
+###
+### mkdocs-nav.yml
+###
+
+nav:
+  - Start Here: welcome.md
+  - Labs:
+      - index.md
+      - '001 - Introduction': 001-intro/README.md
+      - '002 - Compose Demo': 002-Compose-Demo/README.md
+      - '002 - Structure': 002-Structure/README.md
+      - '003 - Commands': 003-Commands/README.md
+      - '004 - Compose to Helm': 004-Compose-2Helm/README.md
+      - '005 - Advanced Features': 005-Compose-Advanced/README.md
+      - '006 - Watch': 006-Watch/README.md
+      - '007 - Networks': 007-Networks/README.md
+      - '008 - Advanced Topics': 008-Advanced/README.md
+      - '009 - Fragments': 009-Fragments/README.md
+      - '010 - Profiles': 010-Profiles/README.md
+      - '011 - Init Containers': 011-InitContainers/README.md
+      - '012 - Variable Substitution': 012-VariableSubstitution/README.md
+      - '013 - Merge & Override': 013-MergeOverride/README.md
+      - '014 - Integration Testing': 014-IntegrationTesting/README.md
+      - '015 - Secrets & Configs': 015-SecretsConfigs/README.md
+      - '016 - Dev Workflows': 016-DevWorkflows/README.md

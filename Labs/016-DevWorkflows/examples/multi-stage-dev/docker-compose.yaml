@@ -1,0 +1,49 @@
+services:
+  # ── Build stage ──────────────────────────────────────────
+  build:
+    image: node:20-alpine
+    working_dir: /build
+    volumes:
+      - .:/build
+      - node_modules:/build/node_modules
+    command: >
+      sh -c "
+        npm ci &&
+        npm run build &&
+        echo 'Build complete'
+      "
+
+  # ── Dev stage ────────────────────────────────────────────
+  dev:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    command: ["npm", "run", "dev"]
+    ports:
+      - "8212:5173"
+    environment:
+      NODE_ENV: development
+      HOT_RELOAD: "true"
+
+  # ── Test stage ───────────────────────────────────────────
+  test:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    command: ["npm", "run", "test"]
+
+  # ── Lint stage ───────────────────────────────────────────
+  lint:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    command: ["npm", "run", "lint"]
+
+volumes:
+  node_modules:

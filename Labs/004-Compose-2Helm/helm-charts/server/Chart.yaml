@@ -1,4 +1,14 @@
 apiVersion: v2
 name: server
+description: A Helm chart for server on Kubernetes
+type: application
 version: 0.1.0
-description: Helm chart for Server
+appVersion: "1.0.0"
+keywords:
+  - server
+  - monitoring
+sources:
+  - https://github.com/nirgeier/DockerComposeLabs
+maintainers:
+  - name: Nir Geier
+    email: nirgeier@gmail.com

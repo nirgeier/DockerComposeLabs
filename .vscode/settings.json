@@ -24,5 +24,8 @@
   "editor.smoothScrolling": true,
   "[xml]": {
     "editor.defaultFormatter": "j69.ejs-beautify"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
   }
 }

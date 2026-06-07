@@ -1,0 +1,221 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Fragments - Complete Reference
+# ──────────────────────────────────────────────────────────────
+# This file demonstrates ALL fragment types combined into a
+# realistic multi-service application.
+# ──────────────────────────────────────────────────────────────
+
+# ══════════════════════════════════════════════════════════════
+# FRAGMENT DEFINITIONS
+# ══════════════════════════════════════════════════════════════
+
+# ── Logging ──────────────────────────────────────────────────
+x-logging-default: &logging-default
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+# ── Restart ──────────────────────────────────────────────────
+x-restart-always: &restart-always
+  restart: always
+
+x-restart-no: &restart-no
+  restart: "no"
+
+# ── Resources ────────────────────────────────────────────────
+x-resources-tiny: &resources-tiny
+  deploy:
+    resources:
+      limits:
+        cpus: "0.1"
+        memory: "64M"
+
+x-resources-small: &resources-small
+  deploy:
+    resources:
+      limits:
+        cpus: "0.25"
+        memory: "128M"
+      reservations:
+        cpus: "0.1"
+        memory: "64M"
+
+x-resources-medium: &resources-medium
+  deploy:
+    resources:
+      limits:
+        cpus: "0.5"
+        memory: "256M"
+      reservations:
+        cpus: "0.25"
+        memory: "128M"
+
+# ── Healthchecks ─────────────────────────────────────────────
+x-healthcheck-http: &healthcheck-http
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 10s
+
+x-healthcheck-postgres: &healthcheck-postgres
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U appuser"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 10s
+
+x-healthcheck-redis: &healthcheck-redis
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 10s
+    timeout: 3s
+    retries: 5
+
+# ── Security ─────────────────────────────────────────────────
+x-security-web: &security-web
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  cap_add:
+    - NET_BIND_SERVICE
+  read_only: true
+  tmpfs:
+    - /tmp
+
+# ── Profiles ─────────────────────────────────────────────────
+x-profile-dev: &profile-dev
+  profiles:
+    - dev
+
+x-profile-monitoring: &profile-monitoring
+  profiles:
+    - monitoring
+
+# ══════════════════════════════════════════════════════════════
+# NETWORKS
+# ══════════════════════════════════════════════════════════════
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  database:
+    driver: bridge
+    internal: true
+
+# ══════════════════════════════════════════════════════════════
+# VOLUMES
+# ══════════════════════════════════════════════════════════════
+volumes:
+  db-data:
+  redis-data:
+
+# ══════════════════════════════════════════════════════════════
+# SECRETS
+# ══════════════════════════════════════════════════════════════
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  api_key:
+    file: ./secrets/api_key.txt
+
+# ══════════════════════════════════════════════════════════════
+# SERVICES
+# ══════════════════════════════════════════════════════════════
+services:
+
+  # ── Reverse Proxy ───────────────────────────────────────
+  proxy:
+    image: nginx:alpine
+    ports:
+      - "8171:80"
+    networks:
+      - frontend
+    <<: [*logging-default, *restart-always, *resources-small, *healthcheck-http, *security-web]
+
+  # ── Web Application ─────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    image: myapp-web:latest
+    ports:
+      - "8172:3000"
+    environment:
+      - DB_HOST=db
+      - REDIS_HOST=redis
+      - API_KEY_FILE=/run/secrets/api_key
+    networks:
+      frontend:
+      backend:
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    <<: [*logging-default, *restart-always, *resources-medium, *security-web]
+
+  # ── Database ────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: myapp
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - database
+    secrets:
+      - db_password
+    <<: [*logging-default, *restart-always, *resources-medium, *healthcheck-postgres]
+
+  # ── Cache ───────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis-data:/data
+    networks:
+      - backend
+    <<: [*logging-default, *restart-always, *resources-tiny, *healthcheck-redis]
+
+  # ── Development Tools ───────────────────────────────────
+  adminer:
+    image: adminer
+    ports:
+      - "8173:8080"
+    networks:
+      - database
+    <<: [*logging-default, *restart-no, *resources-tiny, *profile-dev]
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8174:8025"
+      - "1025:1025"
+    <<: [*logging-default, *profile-dev]
+
+  # ── Monitoring (profile only) ───────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+    <<: [*logging-default, *resources-medium, *profile-monitoring]
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - backend
+    depends_on:
+      - prometheus
+    <<: [*logging-default, *resources-medium, *profile-monitoring]

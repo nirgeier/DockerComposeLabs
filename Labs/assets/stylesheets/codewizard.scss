@@ -1,0 +1,24 @@
+// This is the main SCSS file for the CodeWizard MkDocs theme.
+// @Authors: CodeWizard codewizard.co.il
+// codewizard.scss
+//
+@use "mixins" as *;
+@use "fonts";
+
+// ── MkDocs theme partials ────────────────────────────────────────────────────
+@use "general";
+@use "dark";
+@use "print";
+@use "nav";
+@use "social";
+@use "github_avatar";
+
+// ── Bash Escape Room partials ─────────────────────────────────────────────────
+// escape-room-overrides: mkdocs admonition/task-card styles for room pages
+@use "escape-room-overrides";
+// vscode: VS Code extension sidebar panel styles (compiled → media/style.css)
+@use "vscode";
+
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css");
+@import url("https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap");

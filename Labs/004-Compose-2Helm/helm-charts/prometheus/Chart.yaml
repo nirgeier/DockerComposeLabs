@@ -1,4 +1,14 @@
 apiVersion: v2
 name: prometheus
+description: A Helm chart for prometheus on Kubernetes
+type: application
 version: 0.1.0
-description: Helm chart for Prometheus
+appVersion: "1.0.0"
+keywords:
+  - prometheus
+  - monitoring
+sources:
+  - https://github.com/nirgeier/DockerComposeLabs
+maintainers:
+  - name: Nir Geier
+    email: nirgeier@gmail.com

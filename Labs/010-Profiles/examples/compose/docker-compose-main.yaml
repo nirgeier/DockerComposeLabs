@@ -1,0 +1,18 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Profiles - Multi-File Composition
+# ──────────────────────────────────────────────────────────────
+# Profiles work across multiple compose files. Define services
+# in separate files and combine them at deployment time.
+# ──────────────────────────────────────────────────────────────
+
+services:
+  # ── Core services ───────────────────────────────────────
+  web:
+    image: nginx:alpine
+    ports:
+      - "8181:80"
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example

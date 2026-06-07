@@ -1,4 +1,14 @@
 apiVersion: v2
 name: grafana
+description: A Helm chart for grafana on Kubernetes
+type: application
 version: 0.1.0
-description: Helm chart for Grafana
+appVersion: "1.0.0"
+keywords:
+  - grafana
+  - monitoring
+sources:
+  - https://github.com/nirgeier/DockerComposeLabs
+maintainers:
+  - name: Nir Geier
+    email: nirgeier@gmail.com

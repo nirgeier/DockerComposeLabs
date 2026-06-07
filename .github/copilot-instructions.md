@@ -8,7 +8,7 @@ Every README.md file must start with this exact template:
 
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/nirgeier/DockerComposeLabs)
-### **<kbd>CTRL</kbd> + click to open in new window**
+**<kbd>CTRL</kbd> + click to open in new window**
 
 ---
 
@@ -33,7 +33,7 @@ At the button of the template, add navigation links to previous/next files in th
 ```markdown
 ![](./resources/lab.jpg)
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://console.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/nirgeier/DockerComposeLabs)
-### **<kbd>CTRL</kbd> + click to open in new window**
+**<kbd>CTRL</kbd> + click to open in new window**
 
 # Project Title
 

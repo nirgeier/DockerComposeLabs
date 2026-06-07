@@ -1,0 +1,17 @@
+services:
+  web:
+    image: nginx:alpine
+    ports:
+      - "8205:80"
+    secrets:
+      - tls_cert
+      - tls_key
+      - api_key
+
+secrets:
+  tls_cert:
+    file: ./secrets/cert.pem
+  tls_key:
+    file: ./secrets/key.pem
+  api_key:
+    file: ./secrets/api_key.txt
