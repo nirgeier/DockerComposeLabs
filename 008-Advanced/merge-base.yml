@@ -1,0 +1,17 @@
+###
+### Base compose file - Merge Demo
+###
+version: "3.8"
+services:
+  app:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    environment:
+      - ENV=production
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: myapp
+      POSTGRES_PASSWORD: changeme

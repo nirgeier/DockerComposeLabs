@@ -1,0 +1,20 @@
+services:
+  web:
+    ports:
+      - "8198:80"
+    environment:
+      - APP_ENV=development
+      - DEBUG=true
+    volumes:
+      - ./src:/app/src:ro
+
+  db:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: devpass
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"

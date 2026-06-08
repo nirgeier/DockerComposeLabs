@@ -1,0 +1,78 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Network Fragments
+# ──────────────────────────────────────────────────────────────
+# Define reusable network configurations for different
+# deployment scenarios.
+# ──────────────────────────────────────────────────────────────
+
+# ── Reusable Network Fragments ────────────────────────────────
+x-network-bridge: &network-bridge
+  networks:
+    - frontend
+    - backend
+
+x-network-internal: &network-internal
+  networks:
+    - internal
+
+x-network-public: &network-public
+  networks:
+    - public
+
+x-network-dmz: &network-dmz
+  networks:
+    - dmz
+
+x-network-multi: &network-multi
+  networks:
+    frontend:
+    backend:
+    database:
+
+# ── Network Definitions ───────────────────────────────────────
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+  internal:
+    driver: bridge
+    internal: true
+  public:
+    driver: bridge
+  dmz:
+    driver: bridge
+  database:
+    driver: bridge
+
+# ── Services ──────────────────────────────────────────────────
+services:
+
+  proxy:
+    image: nginx:alpine
+    ports:
+      - "8121:80"
+    <<: *network-public
+    networks:
+      public:
+      dmz:
+
+  app:
+    image: nginx:alpine
+    <<: *network-multi
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    <<: *network-internal
+
+  redis:
+    image: redis:7-alpine
+    <<: *network-internal
+
+  adminer:
+    image: adminer
+    ports:
+      - "8122:8080"
+    <<: *network-public

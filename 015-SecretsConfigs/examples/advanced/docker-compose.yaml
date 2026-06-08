@@ -1,0 +1,49 @@
+services:
+  app:
+    image: nginx:alpine
+    ports:
+      - "8207:80"
+    secrets:
+      - source: db_password
+        target: /run/secrets/db/password
+        mode: 0400
+      - source: api_key
+        target: /run/secrets/api/key
+        mode: 0440
+      - source: tls_cert
+        target: /etc/ssl/certs/server.crt
+      - source: tls_key
+        target: /etc/ssl/private/server.key
+    environment:
+      DB_PASSWORD_FILE: /run/secrets/db/password
+      API_KEY_FILE: /run/secrets/api/key
+
+  config-consumer:
+    image: alpine:latest
+    command: >
+      sh -c "
+        echo 'Checking configs...' &&
+        ls -la /etc/nginx/conf.d/ &&
+        cat /etc/nginx/conf.d/app.conf | grep -i root
+      "
+    configs:
+      - source: nginx_config
+        target: /etc/nginx/conf.d/app.conf
+      - source: logging_config
+        target: /etc/nginx/conf.d/logging.conf
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  api_key:
+    file: ./secrets/api_key.txt
+  tls_cert:
+    file: ./secrets/cert.pem
+  tls_key:
+    file: ./secrets/key.pem
+
+configs:
+  nginx_config:
+    file: ./configs/app.conf
+  logging_config:
+    file: ./configs/logging.conf

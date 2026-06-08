@@ -1,0 +1,16 @@
+services:
+  app:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./src:/app/src:ro
+    command: >
+      sh -c "
+        npm install -g nodemon &&
+        nodemon --watch src server.js
+      "
+    ports:
+      - "8209:3000"
+    environment:
+      NODE_ENV: development
+      HOT_RELOAD: "true"

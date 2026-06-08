@@ -1,0 +1,7 @@
+###
+### API service - Include Demo
+###
+services:
+  api:
+    image: node:20-alpine
+    command: ["sh", "-c", "echo 'API running' && sleep 3600"]

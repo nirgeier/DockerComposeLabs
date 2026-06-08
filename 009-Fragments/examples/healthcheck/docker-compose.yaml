@@ -1,0 +1,101 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Healthcheck Fragments
+# ──────────────────────────────────────────────────────────────
+# Reusable healthcheck definitions for common services.
+# ──────────────────────────────────────────────────────────────
+
+# ── Reusable Healthcheck Fragments ────────────────────────────
+x-healthcheck-http: &healthcheck-http
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 10s
+
+x-healthcheck-https: &healthcheck-https
+  healthcheck:
+    test: ["CMD", "curl", "-fk", "https://localhost"]
+    interval: 30s
+    timeout: 10s
+    retries: 3
+    start_period: 15s
+
+x-healthcheck-tcp: &healthcheck-tcp
+  healthcheck:
+    test: ["CMD", "nc", "-z", "localhost", "5432"]
+    interval: 15s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
+x-healthcheck-postgres: &healthcheck-postgres
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 10s
+
+x-healthcheck-redis: &healthcheck-redis
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 10s
+    timeout: 3s
+    retries: 5
+
+x-healthcheck-mysql: &healthcheck-mysql
+  healthcheck:
+    test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+
+x-healthcheck-mongo: &healthcheck-mongo
+  healthcheck:
+    test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+    interval: 15s
+    timeout: 5s
+    retries: 5
+    start_period: 20s
+
+x-healthcheck-elastic: &healthcheck-elastic
+  healthcheck:
+    test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+    interval: 30s
+    timeout: 10s
+    retries: 5
+    start_period: 60s
+
+# ── Services ──────────────────────────────────────────────────
+services:
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "8111:80"
+    <<: *healthcheck-http
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    ports:
+      - "5432:5432"
+    <<: *healthcheck-postgres
+
+  cache:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    <<: *healthcheck-redis
+
+  search:
+    image: elasticsearch:8.12.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    <<: *healthcheck-elastic

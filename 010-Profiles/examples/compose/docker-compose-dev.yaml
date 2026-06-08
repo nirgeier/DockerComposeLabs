@@ -1,0 +1,18 @@
+# ──────────────────────────────────────────────────────────────
+# Dev tools - activated via profile
+# ──────────────────────────────────────────────────────────────
+services:
+  adminer:
+    image: adminer
+    ports:
+      - "8182:8080"
+    profiles:
+      - dev
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8183:8025"
+      - "1025:1025"
+    profiles:
+      - dev

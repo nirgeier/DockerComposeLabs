@@ -1,0 +1,17 @@
+# ──────────────────────────────────────────────────────────────
+# Monitoring stack - activated via profile
+# ──────────────────────────────────────────────────────────────
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    profiles:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    profiles:
+      - monitoring

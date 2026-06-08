@@ -1,0 +1,45 @@
+services:
+  grafana:
+    env_file:
+      - ../../resources/compose/.env
+    extends:
+      file: ../../resources/compose/grafana.yaml
+      service: grafana
+
+  loki:
+    env_file:
+      - ../../resources/compose/.env
+    extends:
+      file: ../../resources/compose/loki.yaml
+      service: loki
+
+  node-exporter:
+    env_file:
+      - ../../resources/compose/.env
+    extends:
+      file: ../../resources/compose/node-exporter.yaml
+      service: node-exporter
+
+  portainer:
+    env_file:
+      - ../../resources/compose/.env
+    extends:
+      file: ../../resources/compose/portainer.yaml
+      service: portainer
+
+  prometheus:
+    env_file:
+      - ../../resources/compose/.env
+    extends:
+      file: ../../resources/compose/prometheus.yaml
+      service: prometheus
+
+  server:
+    env_file:
+      - ../../resources/compose/.env
+    extends:
+      file: ../../resources/compose/server.yaml
+      service: server
+volumes:
+  portainer_data:
+    driver: local

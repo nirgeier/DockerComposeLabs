@@ -1,0 +1,17 @@
+services:
+  # ── MAP merge: environment dict is merged ──────────────────
+  map-merge:
+    environment:
+      SHARED_VAR: from-override
+      NEW_VAR: override-only
+
+  # ── LIST replace: ports list is REPLACED, not merged ───────
+  list-replace:
+    ports:
+      - "9090:80"
+
+  # ── SEQUENCE merge: depends_on list is merged ─────────────
+  sequence-merge:
+    depends_on:
+      list-replace:
+        condition: service_started

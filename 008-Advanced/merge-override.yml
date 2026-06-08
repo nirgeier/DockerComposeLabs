@@ -1,0 +1,17 @@
+###
+### Dev overrides - Merge Demo
+###
+services:
+  app:
+    ports:
+      - "8080:80"
+    environment:
+      - ENV=development
+    volumes:
+      - ./src:/usr/share/nginx/html
+
+  db:
+    environment:
+      POSTGRES_PASSWORD: devpassword
+    ports:
+      - "5432:5432"

@@ -1,0 +1,55 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose `extends` with External Fragment Files
+# ──────────────────────────────────────────────────────────────
+# The `extends` feature allows you to inherit service
+# definitions from external YAML files. This is different
+# from YAML anchors - it loads from separate files.
+# ──────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Extend from external compose files ───────────────────
+  web:
+    extends:
+      file: ../../resources/compose/fragments.yaml
+      service: web-base
+    ports:
+      - "8161:80"
+
+  app:
+    extends:
+      file: ./base/app.yaml
+      service: app-base
+    environment:
+      - APP_ENV=production
+
+  db:
+    extends:
+      file: ./base/database.yaml
+      service: postgres-base
+    environment:
+      POSTGRES_DB: myapp_production
+    <<: &resources-medium
+      deploy:
+        resources:
+          limits:
+            cpus: "0.5"
+            memory: "256M"
+          reservations:
+            cpus: "0.25"
+            memory: "128M"
+
+  # ── Mixed approach: anchors + extends ────────────────────
+  cache:
+    image: redis:7-alpine
+    <<: &healthcheck-redis
+      healthcheck:
+        test: ["CMD", "redis-cli", "ping"]
+        interval: 10s
+        timeout: 3s
+        retries: 5
+
+# ── Networks ──────────────────────────────────────────────────
+networks:
+  default:
+    driver: bridge

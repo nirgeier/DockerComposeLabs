@@ -1,0 +1,58 @@
+# Docker Compose configuration for monitoring stack
+# This configuration demonstrates the use of 'extends' to inherit service definitions
+# from external YAML files, promoting modularity and reusability
+
+services:
+  # Grafana - Data visualization and monitoring dashboard
+  grafana:
+    env_file:
+      - ../../resources/compose/.env # Load environment variables from external file
+    extends:
+      file: ../../resources/compose/grafana.yaml # Inherit service definition
+      service: grafana
+
+  # Loki - Log aggregation system
+  loki:
+    env_file:
+      - ../../resources/compose/.env # Load environment variables from external file
+    extends:
+      file: ../../resources/compose/loki.yaml # Inherit service definition
+      service: loki
+
+  # Node Exporter - Hardware and OS metrics exporter for Prometheus
+  node-exporter:
+    env_file:
+      - ../../resources/compose/.env # Load environment variables from external file
+    extends:
+      file: ../../resources/compose/node-exporter.yaml # Inherit service definition
+      service: node-exporter
+
+  # Portainer - Docker container management UI
+  portainer:
+    env_file:
+      - ../../resources/compose/.env # Load environment variables from external file
+    extends:
+      file: ../../resources/compose/portainer.yaml # Inherit service definition
+      service: portainer
+
+  # Prometheus - Metrics collection and monitoring system
+  prometheus:
+    env_file:
+      - ../../resources/compose/.env # Load environment variables from external file
+    extends:
+      file: ../../resources/compose/prometheus.yaml # Inherit service definition
+      service: prometheus
+
+  # Server - Custom application server
+  server:
+    env_file:
+      - ../../resources/compose/.env # Load environment variables from external file
+    extends:
+      file: ../../resources/compose/server.yaml # Inherit service definition
+      service: server
+
+# Named volumes for persistent data storage
+volumes:
+  # Portainer data volume for storing Portainer configuration and data
+  portainer_data:
+    driver: local # Use local driver for volume storage

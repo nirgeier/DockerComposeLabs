@@ -1,0 +1,16 @@
+###
+### Main compose file using include: - Include Demo
+###
+include:
+  - path: ./include-demo/web/docker-compose.yml
+  - path: ./include-demo/api/docker-compose.yml
+  - path: ./include-demo/db/docker-compose.yml
+
+services:
+  proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    depends_on:
+      web:
+        condition: service_started

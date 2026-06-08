@@ -1,0 +1,18 @@
+services:
+  app:
+    image: alpine:latest
+    command: >
+      sh -c "
+        echo 'APP_SECRET=super_secret_123' > /run/secrets/app_secret &&
+        cat /run/secrets/app_secret &&
+        echo 'Using env_file for non-sensitive config:' &&
+        env | grep APP_
+      "
+    env_file:
+      - ./configs/app.env
+    secrets:
+      - app_secret
+
+secrets:
+  app_secret:
+    environment: APP_SECRET

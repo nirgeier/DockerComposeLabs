@@ -1,0 +1,12 @@
+services:
+  web:
+    image: nginx:${NGINX_TAG:-alpine}
+    ports:
+      - "${HOST_PORT:-8195}:80"
+    environment:
+      - APP_NAME=${APP_NAME:-MyApp}
+      - APP_ENV=${APP_ENV:-development}
+      - APP_VERSION=${APP_VERSION:-latest}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MAX_CONNECTIONS=${MAX_CONNECTIONS:-100}
+      - ${CUSTOM_VAR:-SKIP_THIS}

@@ -1,0 +1,22 @@
+services:
+  web:
+    ports:
+      - "8199:80"
+    environment:
+      - APP_ENV=development
+      - LOG_LEVEL=debug
+      - DEBUG=true
+    volumes:
+      - ./app:/usr/share/nginx/html
+      - ./src:/app/src:ro
+
+  db:
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: devpassword
+
+  adminer:
+    image: adminer
+    ports:
+      - "8080:8080"

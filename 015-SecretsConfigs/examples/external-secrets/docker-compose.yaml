@@ -1,0 +1,14 @@
+services:
+  app:
+    image: nginx:alpine
+    ports:
+      - "8206:80"
+    secrets:
+      - db_password
+      - jwt_secret
+
+secrets:
+  db_password:
+    external: true
+  jwt_secret:
+    external: true

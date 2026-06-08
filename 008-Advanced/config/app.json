@@ -1,0 +1,13 @@
+{
+  "app": {
+    "name": "docker-compose-advanced",
+    "version": "1.0.0",
+    "debug": false,
+    "features": {
+      "profiles": true,
+      "secrets": true,
+      "configs": true,
+      "initContainers": true
+    }
+  }
+}

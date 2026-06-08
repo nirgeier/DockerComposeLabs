@@ -1,0 +1,152 @@
+# Docker Compose Watch Example
+# This configuration demonstrates Docker Compose Watch functionality
+# with different watch actions for various file types and services
+
+version: "3.8"
+
+services:
+  # Frontend service - React/Vue.js application example
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Prevent overwriting node_modules
+    environment:
+      - NODE_ENV=development
+    develop:
+      watch:
+        # Sync source code changes for hot reload
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        # Rebuild when package.json changes (new dependencies)
+        - action: rebuild
+          path: ./frontend/package.json
+        # Sync public assets
+        - action: sync
+          path: ./frontend/public
+          target: /app/public
+
+  # Backend service - Node.js/Python API example
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules # For Node.js projects
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://user:password@db:5432/devdb
+    depends_on:
+      - db
+    develop:
+      watch:
+        # Rebuild when dependencies change
+        - action: rebuild
+          path: ./backend/package.json # For Node.js
+        - action: rebuild
+          path: ./backend/requirements.txt # For Python
+        # Sync application code for hot reload
+        - action: sync
+          path: ./backend/src
+          target: /app/src
+        - action: sync
+          path: ./backend/app
+          target: /app/app
+        # Restart when configuration changes
+        - action: restart
+          path: ./backend/config
+
+  # Database service
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=devdb
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    develop:
+      watch:
+        # Restart when database initialization scripts change
+        - action: restart
+          path: ./db/init.sql
+
+  # Web server - Nginx configuration example
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - frontend
+      - backend
+    develop:
+      watch:
+        # Restart when nginx configuration changes
+        - action: restart
+          path: ./nginx/nginx.conf
+        - action: restart
+          path: ./nginx/conf.d
+
+  # Redis cache service
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf
+    command: redis-server /etc/redis/redis.conf
+    develop:
+      watch:
+        # Restart when Redis configuration changes
+        - action: restart
+          path: ./redis/redis.conf
+
+  # Worker service - Background job processor
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    volumes:
+      - ./backend:/app
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - db
+    develop:
+      watch:
+        # Sync worker code changes
+        - action: sync
+          path: ./backend/workers
+          target: /app/workers
+        # Rebuild when dependencies change
+        - action: rebuild
+          path: ./backend/package.json
+
+# Named volumes for data persistence
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# Custom network for service communication
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,71 @@
+# Simple Docker Compose Watch Example
+# Based on the README examples - demonstrates core watch functionality
+
+services:
+  # Example 1: Basic Application Code Watching
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app:/usr/src/app
+    command: npm start
+    develop:
+      watch:
+        # Rebuild when package.json changes (new dependencies)
+        - action: rebuild
+          path: ./package.json
+        # Sync application code changes for hot reload
+        - action: sync
+          path: ./app
+          target: /usr/src/app
+
+  # Example 2: Configuration File Watching
+  config-app:
+    build: .
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./config:/usr/src/app/config
+    command: npm start
+    develop:
+      watch:
+        # Restart when configuration changes
+        - action: restart
+          path: ./config
+
+  # Example 3: Multi-Service Watch Setup - Frontend
+  frontend:
+    build: ./frontend
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./frontend:/app
+    develop:
+      watch:
+        # Sync source code changes
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+
+  # Example 3: Multi-Service Watch Setup - Backend
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    develop:
+      watch:
+        # Rebuild when requirements change
+        - action: rebuild
+          path: ./backend/requirements.txt
+        # Sync application code
+        - action: sync
+          path: ./backend/app
+          target: /app
+
+# Named volumes for data persistence
+volumes:
+  app_data:
+    driver: local

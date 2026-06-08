@@ -1,0 +1,46 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Restart Policy Fragments
+# ──────────────────────────────────────────────────────────────
+# Control container restart behavior in different scenarios.
+# ──────────────────────────────────────────────────────────────
+
+# ── Reusable Restart Policy Fragments ─────────────────────────
+x-restart-no: &restart-no
+  restart: "no"
+
+x-restart-on-failure: &restart-on-failure
+  restart: "on-failure"
+
+x-restart-always: &restart-always
+  restart: "always"
+
+x-restart-unless-stopped: &restart-unless-stopped
+  restart: "unless-stopped"
+
+x-restart-on-failure-3: &restart-on-failure-3
+  restart: "on-failure:3"
+
+# ── Services ──────────────────────────────────────────────────
+services:
+
+  never-restart:
+    image: alpine:latest
+    command: ["sleep", "30"]
+    <<: *restart-no
+
+  restart-on-failure:
+    image: alpine:latest
+    command: ["sh", "-c", "exit 1"]
+    <<: *restart-on-failure
+
+  always-restart:
+    image: nginx:alpine
+    ports:
+      - "8091:80"
+    <<: *restart-always
+
+  unless-stopped:
+    image: nginx:alpine
+    ports:
+      - "8092:80"
+    <<: *restart-unless-stopped

@@ -1,0 +1,81 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Security Fragments
+# ──────────────────────────────────────────────────────────────
+# Reusable security configurations following the principle
+# of least privilege.
+# ──────────────────────────────────────────────────────────────
+
+# ── Reusable Security Fragments ───────────────────────────────
+x-security-default: &security-default
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  cap_add:
+    - NET_BIND_SERVICE
+
+x-security-readonly: &security-readonly
+  read_only: true
+  tmpfs:
+    - /tmp
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+x-security-web: &security-web
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  cap_add:
+    - NET_BIND_SERVICE
+    - NET_RAW
+  read_only: true
+  tmpfs:
+    - /tmp
+    - /var/run
+
+x-security-db: &security-db
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  cap_add:
+    - NET_BIND_SERVICE
+    - CHOWN
+    - DAC_OVERRIDE
+  read_only: false
+
+x-security-privileged: &security-privileged
+  privileged: false
+  security_opt:
+    - no-new-privileges:true
+    - seccomp:unconfined
+  cap_add:
+    - SYS_PTRACE
+    - SYS_ADMIN
+
+# ── Services ──────────────────────────────────────────────────
+services:
+
+  web-app:
+    image: nginx:alpine
+    ports:
+      - "8141:80"
+    <<: *security-web
+
+  api-server:
+    image: node:20-alpine
+    command: ["node", "-e", "require('http').createServer((req,res) => res.end('ok')).listen(3000)"]
+    ports:
+      - "8142:3000"
+    <<: *security-default
+
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    ports:
+      - "5432:5432"
+    <<: *security-db

@@ -1,0 +1,111 @@
+# Docker Compose file version - defines the Compose file format
+# Version 3.9 supports the latest features and is compatible with Docker Engine 19.03.0+
+version: "3.9"
+
+# Services section - defines all the containers that make up your application
+services:
+  # Web service - Nginx reverse proxy/web server
+  web:
+    # Use the official Nginx image from Docker Hub
+    image: nginx:latest
+
+    # Port mapping: host:container
+    # Maps port 8080 on the host to port 80 in the container
+    ports:
+      - "8080:80"
+
+    # Environment variables passed to the container
+    # These can be used by Nginx for configuration
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+
+    # Volume mounting: host_path:container_path
+    # Mounts local web-data directory to Nginx's default html directory
+    volumes:
+      - ./web-data:/usr/share/nginx/html
+
+    # Networks this service should connect to
+    # Allows communication with other services on the same network
+    networks:
+      - webnet
+
+    # Restart policy - always restart if container stops
+    restart: always
+
+  # Application service - Custom Node.js application
+  app:
+    # Build configuration - builds image from local Dockerfile
+    build:
+      # Build context directory containing the Dockerfile
+      context: ./app
+      # Dockerfile name (optional if named 'Dockerfile')
+      dockerfile: Dockerfile
+
+    # Custom container name for easier identification
+    container_name: app-container
+
+    # Port mapping for the Node.js application
+    ports:
+      - "3000:3000"
+
+    # Environment variables for the application
+    environment:
+      - NODE_ENV=production
+
+    # Service dependencies - ensures db starts before app
+    # Note: This only waits for container start, not service readiness
+    depends_on:
+      - db
+
+    # Connect to multiple networks for communication
+    # webnet: communicates with web service
+    # dbnet: communicates with database service
+    networks:
+      - webnet
+      - dbnet
+
+    # Restart policy - only restart on failure
+    restart: on-failure
+
+  # Database service - PostgreSQL database
+  db:
+    # Use the official PostgreSQL image
+    image: postgres:latest
+
+    # Custom container name for easier management
+    container_name: db-container
+
+    # Environment variables required by PostgreSQL
+    # These set up the initial database, user, and password
+    environment:
+      POSTGRES_USER: user # Database username
+      POSTGRES_PASSWORD: password # Database password (use secrets in production!)
+      POSTGRES_DB: mydb # Initial database name
+
+    # Named volume for data persistence
+    # Data survives container restarts and removals
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+    # Connect only to database network for security isolation
+    networks:
+      - dbnet
+
+    # Restart policy - restart unless manually stopped
+    restart: unless-stopped
+
+# Volumes section - defines named volumes for data persistence
+volumes:
+  # Named volume for PostgreSQL data
+  # Docker manages the actual storage location
+  db-data:
+
+# Networks section - defines custom networks for service communication
+networks:
+  # Frontend network - connects web and app services
+  webnet:
+
+  # Backend network - connects app and database services
+  # Provides network isolation between tiers
+  dbnet:

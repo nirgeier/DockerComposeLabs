@@ -1,0 +1,25 @@
+# ── YAML merge rule demonstrations ──────────────────────────
+
+services:
+  # ── MAP merge (last writer wins) ───────────────────────────
+  map-merge:
+    image: alpine:latest
+    command: ["echo", "map merge demo"]
+    environment:
+      SHARED_VAR: from-base
+      UNIQUE_VAR: base-only
+
+  # ── LIST replace (not merged) ──────────────────────────────
+  list-replace:
+    image: alpine:latest
+    command: ["echo", "list replace demo"]
+    ports:
+      - "8080:80"
+
+  # ── SEQUENCE merge (unique by position) ────────────────────
+  sequence-merge:
+    image: alpine:latest
+    command: ["echo", "sequence merge demo"]
+    depends_on:
+      map-merge:
+        condition: service_started

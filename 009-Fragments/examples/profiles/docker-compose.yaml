@@ -1,0 +1,95 @@
+# ──────────────────────────────────────────────────────────────
+# Docker Compose Profile Fragments
+# ──────────────────────────────────────────────────────────────
+# Control which services start in different environments
+# using reusable profile definitions.
+# ──────────────────────────────────────────────────────────────
+
+# ── Reusable Profile Fragments ────────────────────────────────
+x-profile-dev: &profile-dev
+  profiles:
+    - dev
+
+x-profile-staging: &profile-staging
+  profiles:
+    - staging
+
+x-profile-prod: &profile-prod
+  profiles:
+    - production
+
+x-profile-monitoring: &profile-monitoring
+  profiles:
+    - monitoring
+
+x-profile-debug: &profile-debug
+  profiles:
+    - debug
+
+x-profile-devops: &profile-devops
+  profiles:
+    - devops
+
+# ── Services ──────────────────────────────────────────────────
+services:
+
+  # ── Core services (always start) ─────────────────────────
+  proxy:
+    image: nginx:alpine
+    ports:
+      - "8151:80"
+
+  app:
+    image: nginx:alpine
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+
+  # ── Dev-only services ────────────────────────────────────
+  adminer:
+    image: adminer
+    ports:
+      - "8152:8080"
+    <<: *profile-dev
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8153:8025"
+      - "1025:1025"
+    <<: *profile-dev
+
+  # ── Staging-only services ────────────────────────────────
+  staging-tests:
+    image: alpine:latest
+    command: ["sh", "-c", "echo 'Running staging tests...' && sleep 30"]
+    <<: *profile-staging
+
+  # ── Monitoring stack (useful everywhere) ─────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    <<: *profile-monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    <<: *profile-monitoring
+
+  # ── Debugging tools ──────────────────────────────────────
+  debug-shell:
+    image: nicolaka/netshoot:latest
+    command: ["sleep", "infinity"]
+    <<: *profile-debug
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    <<: *profile-devops

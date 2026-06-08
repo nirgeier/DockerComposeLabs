@@ -1,0 +1,472 @@
+# Docker Compose Multi-Network Architecture Example
+# This configuration demonstrates advanced networking concepts including:
+# - Multiple custom networks with different drivers
+# - Network isolation and service segmentation
+# - External networks and network aliases
+# - Bridge, overlay, and custom network configurations
+
+services:
+  # Frontend Tier - Public facing services
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    networks:
+      frontend_network:
+        aliases:
+          - web-proxy
+          - load-balancer
+      dmz_network:
+        aliases:
+          - public-gateway
+    depends_on:
+      - web-app
+    restart: unless-stopped
+
+  web-app:
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+    container_name: web-application
+    environment:
+      - NODE_ENV=production
+      - API_BASE_URL=http://api-gateway:3000
+      - DATABASE_URL=postgres://app_user:app_pass@postgres-primary:5432/app_db
+    networks:
+      frontend_network:
+        aliases:
+          - webapp
+          - frontend-service
+      backend_network:
+        aliases:
+          - web-client
+    depends_on:
+      - api-gateway
+      - redis-session
+    restart: unless-stopped
+
+  # API Gateway - Service mesh entry point
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    environment:
+      - GATEWAY_PORT=3000
+      - USER_SERVICE_URL=http://user-service:8001
+      - ORDER_SERVICE_URL=http://order-service:8002
+      - REDIS_URL=redis://redis-cache:6379
+    networks:
+      backend_network:
+        aliases:
+          - gateway
+          - api-proxy
+      services_network:
+        aliases:
+          - service-gateway
+    depends_on:
+      - user-service
+      - order-service
+      - redis-cache
+    restart: unless-stopped
+
+  # Microservices Tier - Business logic services
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      - SERVICE_PORT=8001
+      - DB_HOST=postgres-primary
+      - DB_PORT=5432
+      - DB_NAME=users_db
+      - REDIS_HOST=redis-cache
+    networks:
+      services_network:
+        aliases:
+          - users
+          - user-api
+      database_network:
+        aliases:
+          - user-db-client
+    depends_on:
+      - postgres-primary
+      - redis-cache
+    restart: unless-stopped
+
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    environment:
+      - SERVICE_PORT=8002
+      - DB_HOST=postgres-secondary
+      - DB_PORT=5432
+      - DB_NAME=orders_db
+      - MESSAGE_QUEUE_URL=amqp://rabbitmq:5672
+    networks:
+      services_network:
+        aliases:
+          - orders
+          - order-api
+      database_network:
+        aliases:
+          - order-db-client
+      messaging_network:
+        aliases:
+          - order-publisher
+    depends_on:
+      - postgres-secondary
+      - rabbitmq
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    environment:
+      - SERVICE_PORT=8003
+      - MESSAGE_QUEUE_URL=amqp://rabbitmq:5672
+      - SMTP_HOST=mailhog
+      - SMTP_PORT=1025
+    networks:
+      services_network:
+        aliases:
+          - notifications
+          - notification-api
+      messaging_network:
+        aliases:
+          - notification-subscriber
+      external_network:
+        aliases:
+          - email-sender
+    depends_on:
+      - rabbitmq
+      - mailhog
+    restart: unless-stopped
+
+  # Data Tier - Databases and cache services
+  postgres-primary:
+    image: postgres:15-alpine
+    container_name: postgres-primary
+    environment:
+      - POSTGRES_DB=app_db
+      - POSTGRES_USER=app_user
+      - POSTGRES_PASSWORD=app_pass
+      - POSTGRES_MULTIPLE_DATABASES=users_db,sessions_db
+    volumes:
+      - postgres_primary_data:/var/lib/postgresql/data
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      database_network:
+        aliases:
+          - primary-db
+          - master-postgres
+    ports:
+      - "5432:5432" # Exposed for development access
+    restart: unless-stopped
+
+  postgres-secondary:
+    image: postgres:15-alpine
+    container_name: postgres-secondary
+    environment:
+      - POSTGRES_DB=orders_db
+      - POSTGRES_USER=orders_user
+      - POSTGRES_PASSWORD=orders_pass
+    volumes:
+      - postgres_secondary_data:/var/lib/postgresql/data
+      - ./postgres/orders-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      database_network:
+        aliases:
+          - secondary-db
+          - orders-postgres
+    restart: unless-stopped
+
+  # Cache and Session Management
+  redis-cache:
+    image: redis:7-alpine
+    container_name: redis-cache
+    command: redis-server --appendonly yes --requirepass redis_pass
+    volumes:
+      - redis_cache_data:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf:ro
+    networks:
+      services_network:
+        aliases:
+          - cache
+          - redis-primary
+      database_network:
+        aliases:
+          - cache-server
+    restart: unless-stopped
+
+  redis-session:
+    image: redis:7-alpine
+    container_name: redis-session
+    command: redis-server --port 6380 --appendonly yes
+    volumes:
+      - redis_session_data:/data
+    networks:
+      frontend_network:
+        aliases:
+          - session-store
+          - session-redis
+    restart: unless-stopped
+
+  # Message Queue and Communication
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=rabbit_user
+      - RABBITMQ_DEFAULT_PASS=rabbit_pass
+      - RABBITMQ_DEFAULT_VHOST=app_vhost
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      messaging_network:
+        aliases:
+          - message-broker
+          - queue-server
+    ports:
+      - "15672:15672" # Management UI
+    restart: unless-stopped
+
+  # External Services Simulation
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    networks:
+      external_network:
+        aliases:
+          - mail-server
+          - smtp-server
+    ports:
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP
+    restart: unless-stopped
+
+  # Monitoring and Observability
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      monitoring_network:
+        aliases:
+          - metrics-collector
+          - prometheus-server
+      services_network: {} # Access to scrape services
+      database_network: {} # Access to scrape databases
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+      - "--web.console.templates=/usr/share/prometheus/consoles"
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin_pass
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      monitoring_network:
+        aliases:
+          - dashboard
+          - grafana-server
+      dmz_network:
+        aliases:
+          - monitoring-ui
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+# Network Definitions
+networks:
+  # Frontend Network - DMZ for public-facing services
+  frontend_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "frontend-br"
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+    labels:
+      - "network.description=Frontend services and public interfaces"
+      - "network.environment=production"
+
+  # Backend Network - Application logic services
+  backend_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "backend-br"
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.21.0.0/24
+          gateway: 172.21.0.1
+    labels:
+      - "network.description=Backend application services"
+      - "network.environment=production"
+
+  # Services Network - Microservices communication
+  services_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "services-br"
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/24
+          gateway: 172.22.0.1
+    labels:
+      - "network.description=Microservices internal communication"
+      - "network.environment=production"
+
+  # Database Network - Data persistence layer
+  database_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "database-br"
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.23.0.0/24
+          gateway: 172.23.0.1
+    labels:
+      - "network.description=Database and cache services"
+      - "network.environment=production"
+      - "network.security=high"
+
+  # Messaging Network - Queue and event communication
+  messaging_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "messaging-br"
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.24.0.0/24
+          gateway: 172.24.0.1
+    labels:
+      - "network.description=Message queue and event streaming"
+      - "network.environment=production"
+
+  # External Network - Third-party services simulation
+  external_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "external-br"
+      com.docker.network.bridge.enable_icc: "false" # More restrictive
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.25.0.0/24
+          gateway: 172.25.0.1
+    labels:
+      - "network.description=External services and APIs"
+      - "network.environment=production"
+
+  # DMZ Network - Public access and reverse proxy
+  dmz_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "dmz-br"
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.26.0.0/24
+          gateway: 172.26.0.1
+    labels:
+      - "network.description=DMZ for public-facing services"
+      - "network.environment=production"
+      - "network.security=dmz"
+
+  # Monitoring Network - Observability services
+  monitoring_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: "monitoring-br"
+      com.docker.network.bridge.enable_icc: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.27.0.0/24
+          gateway: 172.27.0.1
+    labels:
+      - "network.description=Monitoring and observability"
+      - "network.environment=production"
+
+# Volume Definitions
+volumes:
+  postgres_primary_data:
+    driver: local
+    labels:
+      - "volume.description=Primary PostgreSQL database data"
+      - "volume.backup=required"
+
+  postgres_secondary_data:
+    driver: local
+    labels:
+      - "volume.description=Secondary PostgreSQL database data"
+      - "volume.backup=required"
+
+  redis_cache_data:
+    driver: local
+    labels:
+      - "volume.description=Redis cache data"
+      - "volume.backup=optional"
+
+  redis_session_data:
+    driver: local
+    labels:
+      - "volume.description=Redis session data"
+      - "volume.backup=optional"
+
+  rabbitmq_data:
+    driver: local
+    labels:
+      - "volume.description=RabbitMQ message queue data"
+      - "volume.backup=required"
+
+  prometheus_data:
+    driver: local
+    labels:
+      - "volume.description=Prometheus metrics data"
+      - "volume.backup=optional"
+
+  grafana_data:
+    driver: local
+    labels:
+      - "volume.description=Grafana dashboard data"
+      - "volume.backup=required"

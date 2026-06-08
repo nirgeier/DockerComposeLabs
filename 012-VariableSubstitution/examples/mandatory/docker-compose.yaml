@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:?error}
+      POSTGRES_PASSWORD: ${DB_PASS:?password is required}
+      POSTGRES_DB: ${DB_NAME:-myapp}
+
+  api:
+    image: node:20-alpine
+    command: ["sh", "-c", "node -e \"console.log('DB_USER:', process.env.DB_USER)\""]
+    environment:
+      DB_USER: ${DB_USER:?}
+      DB_PASS: ${DB_PASS:?}
+      API_KEY: ${API_KEY:?API key is mandatory}
+      NODE_ENV: ${NODE_ENV:-development}
+    depends_on:
+      - db

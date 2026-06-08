@@ -1,0 +1,24 @@
+services:
+  app:
+    image: nginx:alpine
+    ports:
+      - "8208:80"
+    configs:
+      - source: nginx_common
+        target: /etc/nginx/conf.d/default.conf
+      - source: rate_limit
+        target: /etc/nginx/conf.d/rate_limit.conf
+    secrets:
+      - app_secret
+
+configs:
+  nginx_common:
+    external: true
+  rate_limit:
+    external: true
+    external_keys:
+      name: "rate_limit_v2"
+
+secrets:
+  app_secret:
+    external: true

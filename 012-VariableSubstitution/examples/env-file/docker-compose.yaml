@@ -1,0 +1,15 @@
+# ── Multi-file .env strategy ─────────────────────────────────
+# Docker Compose loads .env from the project root.
+# You can also use env_file: inside services.
+
+services:
+  web:
+    image: nginx:${NGINX_TAG:-alpine}
+    ports:
+      - "${PORT:-8197}:80"
+    env_file:
+      - ./config/common.env
+      - ./config/${APP_ENV:-development}.env
+      - ./secrets/credentials.env
+    environment:
+      APP_NAME: ${APP_NAME:-FallbackApp}

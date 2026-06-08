@@ -1,0 +1,70 @@
+services:
+  app:
+    image: nginx:alpine
+    ports:
+      - "8203:80"
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  # ── Parallel test suites ───────────────────────────────────
+  test-unit:
+    image: alpine:latest
+    command: >
+      sh -c "
+        echo 'Running unit tests...' &&
+        sleep 3 &&
+        echo '✓ unit test 1 passed' &&
+        echo '✓ unit test 2 passed' &&
+        echo '✓ unit test 3 passed'
+      "
+
+  test-api:
+    image: alpine:latest
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        until curl -sf http://app:80; do sleep 1; done &&
+        echo 'Running API tests...' &&
+        sleep 2 &&
+        echo '✓ GET / returns 200' &&
+        echo '✓ HEAD / returns 200'
+      "
+    depends_on:
+      - app
+
+  test-db:
+    image: postgres:16-alpine
+    command: >
+      sh -c "
+        until pg_isready -h db -U postgres; do sleep 1; done &&
+        echo 'Running DB tests...' &&
+        sleep 2 &&
+        echo '✓ Connection works' &&
+        echo '✓ User exists'
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+
+  test-e2e:
+    image: alpine:latest
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        until curl -sf http://app:80; do sleep 1; done &&
+        echo 'Running E2E tests...' &&
+        sleep 4 &&
+        echo '✓ Full flow works'
+      "
+    depends_on:
+      - app
+      - db

@@ -1,0 +1,48 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
+
+  api:
+    image: nginx:alpine
+    ports:
+      - "8202:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  test-api:
+    image: alpine:latest
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        echo 'Waiting for API...' &&
+        until curl -sf http://api:80; do sleep 1; done &&
+        echo 'API is ready' &&
+        curl -s -o /dev/null -w 'HTTP %{http_code}\n' http://api:80 &&
+        echo 'ALL TESTS PASSED'
+      "
+    depends_on:
+      api:
+        condition: service_started
+
+  test-db:
+    image: postgres:16-alpine
+    command: >
+      sh -c "
+        echo 'Waiting for primary DB...' &&
+        until pg_isready -h db -U postgres; do sleep 1; done &&
+        echo 'Checking replication...' &&
+        sleep 2 &&
+        echo 'DB TESTS PASSED'
+      "
+    depends_on:
+      db:
+        condition: service_healthy
